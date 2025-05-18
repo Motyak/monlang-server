@@ -1,0 +1,49 @@
+
+fds := sdf
+fds += sdf
+
+let fds sdf
+var fds sdf
+
+return fds
+break
+continue
+die
+
+foreach elements {
+    dosmtg($1)
+}
+
+while [ true ] {
+    doit()
+}
+
+do {
+    doit()
+}
+
+until [ eof ]
+
+1 + 1
+fds(sdf)
+(x):{x}
+{x}
+fds.sdf
+fds[sdf]
+[a:1, b:(1 + 1)]
+[1, 2]
+91
+$cur
+
+{
+    fds
+
+
+}
+
+{
+
+
+    -- error
+}
+
