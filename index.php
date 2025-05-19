@@ -11,6 +11,5 @@
             "traceback.txt" => file_get_contents("out/traceback.txt"),
             "console.txt" => file_get_contents("out/console.txt"),
         )
-    ));
-    echo "\n";
+    )), "\n";
 ?>
