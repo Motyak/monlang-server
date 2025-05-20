@@ -2,7 +2,7 @@
 set -o errexit
 set -o nounset
 
-set -o xtrace #debug
+# set -o xtrace #debug
 
 trap 'echo "script,$?"' ERR
 
