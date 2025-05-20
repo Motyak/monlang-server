@@ -1,0 +1,25 @@
+
+Si on veut ouvrir le HTML directement dans le browser (avec serveur comme API seulement),
+et que les requêtes puissent quand même fonctionner,
+alors il faut ajouter l'url dans le HTML:
+```
+$.post({
+            url: "http://127.0.0.1:55555/",
+```
+ET
+rajouter ça en haut du PHP:
+```
+header("Access-Control-Allow-Origin: *");
+```
+
+Mais comme nous on fait un serveur PHP,
+en vrai je pense qu'on va virer ces 2 trucs.
+
+J'aurais voulu ne faire qu'un fichier index.php
+pour tout le serveur, mais l'intellisense vs code
+fonctionne mal pour le HTML/CSS/JS au sein d'un
+ficher PHP.
+  -> d'où le include du index.html
+
+---
+
