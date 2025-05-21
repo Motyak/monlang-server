@@ -1,5 +1,5 @@
 
-Si on veut ouvrir le HTML directement dans le browser (avec serveur comme API seulement),
+Si on veut ouvrir le fichier HTML directement dans le browser (avec serveur comme API seulement),
 et que les requêtes puissent quand même fonctionner,
 alors il faut ajouter l'url dans le HTML:
 ```
@@ -15,11 +15,38 @@ header("Access-Control-Allow-Origin: *");
 Mais comme nous on fait un serveur PHP,
 en vrai je pense qu'on va virer ces 2 trucs.
 
+======================================================================
+
 J'aurais voulu ne faire qu'un fichier index.php
 pour tout le serveur, mais l'intellisense vs code
 fonctionne mal pour le HTML/CSS/JS au sein d'un
 ficher PHP.
   -> d'où le include du index.html
 
----
+======================================================================
 
+Si on voulait pouvoir accèder à http://127.0.0.1:55555
+depuis le browser en passant par un nom de domaine
+et sans préciser le port, de la sorte: http://monlang.dev
+(et sans monopoliser le port 80 de 127.0.0.1 localhost)
+
+..Il faudrait d'abord ajouter à /etc/hosts le nom de domaine
+associé à une adresse loopback (e.g.: 127.0.0.2, pour laisser libre
+le port 80 de 127.0.0.1).
+  -> etc/hosts:
+    127.0.0.2 monlang.dev
+    (osef du IPv6)
+
+Puis il faut utiliser socat comme relay TCP de 127.0.0.2:80
+à 127.0.0.1:55555.
+  -> sudo socat TCP4-LISTEN:80,bind=127.0.0.2,fork TCP4:127.0.0.1:55555
+
+Le problème, c'est que malgré tout ça, les browsers modernes
+vont automatiquement rediriger le traffic HTTP vers HTTPS
+à partir du moment où on précise dans l'URL un nom de domaine
+qui est resolved vers du loopback/LAN.
+(même si on précise http:// en scheme)
+  -> de ce fait, on constate la limitation d'un serveur HTTP,
+     ça demanderait trop d'effort pour gagner très peu, de
+     setup du TLS juste pour pouvoir se connecter au site
+     en tappant `monlang.dev` plutôt que `127.0.0.1:55555`
