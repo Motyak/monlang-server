@@ -5,6 +5,12 @@
 <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.19/lib/codemirror.min.js"></script>
 <link href="https://cdn.jsdelivr.net/npm/codemirror@5.65.19/lib/codemirror.min.css" rel="stylesheet">
 
+<!-- <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min/vs/editor/editor.main.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min/vs/editor/editor.main.min.css" rel="stylesheet"> -->
+
+<link href="https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min/vs/editor/editor.main.css" rel="stylesheet">
+<!-- <link href="https://cdn.jsdelivr.net/npm/@vscode/codicons@0.0.36/dist/codicon.min.css" rel="stylesheet"> -->
+
 <!--
 min-w-0 => to prevent flex-1 w-full from expanding beyond its parent (viewport)
 min-h-0 => to prevent flex-1 h-full from expanding beyond its parent (viewport)
@@ -27,23 +33,19 @@ min-h-0 => to prevent flex-1 h-full from expanding beyond its parent (viewport)
 </style>
 
 <script>
+    let editor; // forward declaration
+</script>
+
+<script type="module">
+    import * as monaco from "https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/+esm";
+
     const editor_conf = {
-        autofocus: true,
-        indentUnit: 4,
-        lineNumbers: true,
-        extraKeys: {
-            /* indent with spaces, instead of tabs */
-            Tab: (cm) => {
-                if (cm.somethingSelected()) {
-                        cm.execCommand('indentMore');
-                } else {
-                    cm.execCommand('insertSoftTab');
-                }
-            },
-            'Shift-Tab': (cm) => cm.execCommand('indentLess')
-        }
+        automaticLayout: true,
     }
-    const editor = CodeMirror($("#editorpanel")[0], editor_conf)
+    editor = monaco.editor.create($("#editorpanel")[0], editor_conf);
+</script>
+
+<script>
     const get_src = () => editor.getValue()
     const set_src = src => editor.setValue(src)
 
@@ -95,18 +97,9 @@ min-h-0 => to prevent flex-1 h-full from expanding beyond its parent (viewport)
 
     // line and col starts at 1
     const jump_to = (line, col) => {
-        editor.setCursor({line: line-1, ch: col-1})
-
-        // middle of the view, relative to top of the view
-        const relativeMidY = Math.round(editor.getScrollInfo().clientHeight/2)
-        // cursor position, relative to top of the view
-        // this will only be a positive value, between 0 and .clientHeight, if cursor is visible
-        const relativeCursorY = editor.cursorCoords().top
-        // top of the view, relative to the beginning of the document
-        const absoluteTopY = editor.getScrollInfo().top
-
-        const newAbsoluteTopY = absoluteTopY + relativeCursorY - relativeMidY
-        editor.scrollTo(null, newAbsoluteTopY)
+        editor.revealLineInCenter(line)
+        editor.setPosition({lineNumber: line, column: col})
+        editor.focus()
     }
 
     const addLinksToConsole = () => {
@@ -147,7 +140,6 @@ min-h-0 => to prevent flex-1 h-full from expanding beyond its parent (viewport)
         console_.addOverlay(overlay);
     }
 
-    let saved_y = null
     $(document).keydown(event => {
         if (event.ctrlKey && event.key === "s") {
             event.preventDefault()
