@@ -157,9 +157,11 @@ min-h-0 => to prevent flex-1 h-full from expanding beyond its parent (viewport)
             event.preventDefault()
             if ($("#consolepanel").is(":hidden")) {
                 $("#consolepanel").show()
+                $("#prog_status").show()
             }
             else {
                 $("#consolepanel").hide()
+                $("#prog_status").hide()
             }
         }
     })
