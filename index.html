@@ -35,6 +35,28 @@ min-h-0 => to prevent flex-1 h-full from expanding beyond its parent (viewport)
 </script>
 
 <script>
+    // line and col starts at 1
+    const jump_to = (line, col) => {
+        editor.revealLineInCenter(line)
+        editor.setPosition({lineNumber: line, column: col})
+        editor.focus()
+    }
+
+    const addLinksInConsole = () => {
+        const asLink = (filename, line, col) => {
+            return `<span onclick="jump_to(${line}, ${col})" `
+                + `class="text-blue-600 cursor-pointer underline hover:text-blue-800 hover:no-underline"`
+                + `>${filename}:${line}:${col}</span>`
+        }
+
+        $("#prog_out").html((_index, html) => {
+            return html.replace(
+                /\b(src\.ml):([1-9][0-9]*):([1-9][0-9]*)\b/g,
+                (_match, filename, line, col) => {return asLink(filename, line, col)}
+            )
+        })
+    }
+
     const get_src = () => editor.getValue()
     const set_src = src => editor.setValue(src)
 
@@ -45,12 +67,14 @@ min-h-0 => to prevent flex-1 h-full from expanding beyond its parent (viewport)
         if (res_obj["prog"] === "interpreter") {
             let exitcode = res_obj["prog_exitcode"]
             $("#prog_out").text(res_obj["out"]["console.txt"])
+            addLinksInConsole()
             $("#prog_status").text(`Program terminated with exit code ${exitcode}`)
             $("#prog_status").css("border-top-color", exitcode == 0? "green" : "red")
             $("#prog_status").show()
         }
         else if (res_obj["prog"] === "parser") {
             $("#prog_out").text(res_obj["out"]["traceback.txt"])
+            addLinksInConsole()
             $("#prog_status").hide()
         }
     }
@@ -80,13 +104,6 @@ min-h-0 => to prevent flex-1 h-full from expanding beyond its parent (viewport)
             },
             error: (xhr, status, error) => console.error(xhr, status, error)
         })
-    }
-
-    // line and col starts at 1
-    const jump_to = (line, col) => {
-        editor.revealLineInCenter(line)
-        editor.setPosition({lineNumber: line, column: col})
-        editor.focus()
     }
 
     $(document).keydown(event => {
