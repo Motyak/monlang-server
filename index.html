@@ -9,7 +9,7 @@ min-w-0 => to prevent flex-1 w-full from expanding beyond its parent (viewport)
 min-h-0 => to prevent flex-1 h-full from expanding beyond its parent (viewport)
 -->
 
-<div id="globalpanel" class="flex flew-row w-screen h-screen">
+<div id="globalpanel" class="flex flew-row w-screen h-screen font-mono">
     <div id="sidepanel" class="flex-none w-1/5 h-full border border-dashed border-red-500">&lt;sidepanel&gt;</div>
     <div id="mainpanel" class="flex flex-col flex-1 w-full h-full min-w-0">
         <div id="editorpanel" class="flex-1 w-full h-full min-h-0"></div>
@@ -19,17 +19,6 @@ min-h-0 => to prevent flex-1 h-full from expanding beyond its parent (viewport)
         </div>
     </div>
 </div>
-
-<!-- <div id="globalpanel" class="h-screen w-screen flex">
-    <div id="sidepanel" class="w-1/5 border border-dashed border-red-500">sidepanel</div>
-    <div id="mainpanel" class="w-4/5 flex flex-col">
-        <div id="editorpanel" class="flex-1"></div>
-        <div id="consolepanel" class="h-1/3 flex flex-col border border-dashed border-red-500">
-            <pre id="prog_out" class="flex-1 overflow-y-auto">prog_out</pre>
-            <p id="prog_status" class="text-base">prog_status</p>
-        </div>
-    </div>
-</div> -->
 
 <script>
     let editor; // forward declaration
@@ -54,15 +43,11 @@ min-h-0 => to prevent flex-1 h-full from expanding beyond its parent (viewport)
         const res_obj = JSON.parse(res)
         console.log(res_obj)
         if (res_obj["prog"] === "interpreter") {
+            let exitcode = res_obj["prog_exitcode"]
             $("#prog_out").text(res_obj["out"]["console.txt"])
-            $("#prog_status").text(`Program terminated with exit code ${res_obj["prog_exitcode"]}`)
+            $("#prog_status").text(`Program terminated with exit code ${exitcode}`)
+            $("#prog_status").css("border-top-color", exitcode == 0? "green" : "red")
             $("#prog_status").show()
-            if (res_obj["prog_exitcode"] == 0) {
-                $("#prog_status").css("border-top-color", "green")
-            }
-            else {
-                $("#prog_status").css("border-top-color", "red")
-            }
         }
         else if (res_obj["prog"] === "parser") {
             $("#prog_out").text(res_obj["out"]["traceback.txt"])
@@ -74,8 +59,8 @@ min-h-0 => to prevent flex-1 h-full from expanding beyond its parent (viewport)
         const clearConsole = () => {
             $("#prog_out").text("")
             $("#prog_status").text("Executing program...")
-            $("#prog_status").show()
             $("#prog_status").css("border-top-color", "grey")
+            $("#prog_status").show()
         }
         // 20ms is the min delay above which you don't see an ugly blink..
         // ..when executing the simplest `print($true)` program
