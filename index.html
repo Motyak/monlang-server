@@ -64,6 +64,7 @@ min-h-0 => to prevent flex-1 h-full from expanding beyond its parent (viewport)
     const set_res = res => {
         const res_obj = JSON.parse(res)
         console.log(res_obj)
+
         if (res_obj["prog"] === "interpreter") {
             let exitcode = res_obj["prog_exitcode"]
             $("#prog_out").text(res_obj["out"]["console.txt"])
@@ -77,6 +78,8 @@ min-h-0 => to prevent flex-1 h-full from expanding beyond its parent (viewport)
             addLinksInConsole()
             $("#prog_status").hide()
         }
+
+        $("#consolepanel").show()
     }
 
     const execute_src = (src = get_src(), onSuccess = set_res) => {
