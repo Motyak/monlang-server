@@ -109,7 +109,7 @@ min-h-0 => to prevent flex-1 h-full from expanding beyond its parent (viewport)
                 clearTimeout(timeout_clearConsole)
                 onSuccess(res)
             },
-            error: (xhr, status, error) => console.error(xhr, status, error)
+            error: console.error
         })
     }
 
