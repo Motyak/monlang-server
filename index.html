@@ -4,6 +4,8 @@
 
 <link href="https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min/vs/editor/editor.main.css" rel="stylesheet">
 
+<title>src.ml</title>
+
 <!--
 min-w-0 => to prevent flex-1 w-full from expanding beyond its parent (viewport)
 min-h-0 => to prevent flex-1 h-full from expanding beyond its parent (viewport)
@@ -35,6 +37,8 @@ min-h-0 => to prevent flex-1 h-full from expanding beyond its parent (viewport)
 </script>
 
 <script>
+    let g_lastExecutedSrc = ""
+
     // line and col starts at 1
     const jump_to = (line, col) => {
         editor.revealLineInCenter(line)
@@ -70,7 +74,7 @@ min-h-0 => to prevent flex-1 h-full from expanding beyond its parent (viewport)
             $("#prog_out").text(res_obj["out"]["console.txt"])
             addLinksInConsole()
             $("#prog_status").text(`Program terminated with exit code ${exitcode}`)
-            $("#prog_status").css("border-top-color", exitcode == 0? "green" : "red")
+            $("#prog_status").css("border-top-color", exitcode === 0? "green" : "red")
             $("#prog_status").show()
         }
         else if (res_obj["prog"] === "parser") {
@@ -109,14 +113,29 @@ min-h-0 => to prevent flex-1 h-full from expanding beyond its parent (viewport)
         })
     }
 
-    $(document).keydown(event => {
-        if (event.ctrlKey && event.key === "s") {
-            event.preventDefault()
-            execute_src()
-        }
-        if (event.ctrlKey && event.key === "j") {
-            event.preventDefault()
-            $("#consolepanel").toggle()
-        }
+    $(document).ready(() => {
+        $(document).keydown(event => {
+            if (event.ctrlKey && event.key === "s") {
+                event.preventDefault()
+                let src = get_src()
+                execute_src(src)
+                g_lastExecutedSrc = src
+                document.title = "src.ml"
+            }
+
+            if (event.ctrlKey && event.key === "j") {
+                event.preventDefault()
+                $("#consolepanel").toggle()
+            }
+
+            if (event.ctrlKey && event.key === "b") {
+                event.preventDefault()
+                $("#sidepanel").toggle()
+            }
+        })
+
+        editor.getModel().onDidChangeContent(_event => {
+            document.title = get_src() === g_lastExecutedSrc? "src.ml" : "*src.ml"
+        })
     })
 </script>
