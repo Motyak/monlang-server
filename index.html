@@ -171,41 +171,43 @@
         }
         $("#consolepanel").show()
 
-        /* set LV1_tree */
-        $("#LV1_tree table").empty()
-        let LV1_lines = res_obj["out"]["LV1.ast.txt"].split("\n")
-        for (let i = 0; i < LV1_lines.length; ++i) {
-            let prefix = (
-                i + 1 == LV1_lines.length
-                || get_indent(LV1_lines[i + 1]) <= get_indent(LV1_lines[i])
-            )? "  " : "▾ "
-            // /!\ the "prefix" is set after the indentation
-            let prefixedLine = LV1_lines[i].replace(/(\S)/, (_match, group) => prefix + group)
-            let newRow = `<tr onclick="toggleSyntaxTreeNode(this)" `
-                    + `class="select-none cursor-pointer hover:bg-gray-100">`
-                    +`<td><pre>`
-                    + prefixedLine
-                    + `</pre></td></tr>`
-            $("#LV1_tree table").append(newRow)
-        }
+        setTimeout(() => {
+            /* set LV1_tree */
+            $("#LV1_tree table").empty()
+            let LV1_lines = res_obj["out"]["LV1.ast.txt"].split("\n")
+            for (let i = 0; i < LV1_lines.length; ++i) {
+                let prefix = (
+                    i + 1 == LV1_lines.length
+                    || get_indent(LV1_lines[i + 1]) <= get_indent(LV1_lines[i])
+                )? "  " : "▾ "
+                // /!\ the "prefix" is set after the indentation
+                let prefixedLine = LV1_lines[i].replace(/(\S)/, (_match, group) => prefix + group)
+                let newRow = `<tr onclick="toggleSyntaxTreeNode(this)" `
+                        + `class="select-none cursor-pointer hover:bg-gray-100">`
+                        +`<td><pre>`
+                        + prefixedLine
+                        + `</pre></td></tr>`
+                $("#LV1_tree table").append(newRow)
+            }
 
-        /* set LV2_tree */
-        $("#LV2_tree table").empty()
-        let LV2_lines = res_obj["out"]["LV2.ast.txt"].split("\n")
-        for (let i = 0; i < LV2_lines.length; ++i) {
-            let prefix = (
-                i + 1 == LV2_lines.length
-                || get_indent(LV2_lines[i + 1]) <= get_indent(LV2_lines[i])
-            )? "  " : "▾ "
-            // /!\ the "prefix" is set after the indentation
-            let prefixedLine = LV2_lines[i].replace(/(\S)/, (_match, group) => prefix + group)
-            let newRow = `<tr onclick="toggleSyntaxTreeNode(this)" `
-                    + `class="select-none cursor-pointer hover:bg-gray-100">`
-                    +`<td><pre>`
-                    + prefixedLine
-                    + `</pre></td></tr>`
-            $("#LV2_tree table").append(newRow)
-        }
+            /* set LV2_tree */
+            $("#LV2_tree table").empty()
+            let LV2_lines = res_obj["out"]["LV2.ast.txt"].split("\n")
+            for (let i = 0; i < LV2_lines.length; ++i) {
+                let prefix = (
+                    i + 1 == LV2_lines.length
+                    || get_indent(LV2_lines[i + 1]) <= get_indent(LV2_lines[i])
+                )? "  " : "▾ "
+                // /!\ the "prefix" is set after the indentation
+                let prefixedLine = LV2_lines[i].replace(/(\S)/, (_match, group) => prefix + group)
+                let newRow = `<tr onclick="toggleSyntaxTreeNode(this)" `
+                        + `class="select-none cursor-pointer hover:bg-gray-100">`
+                        +`<td><pre>`
+                        + prefixedLine
+                        + `</pre></td></tr>`
+                $("#LV2_tree table").append(newRow)
+            }
+        }, 0)
     }
 
     const execute_src = (src = get_src(), onSuccess = set_res) => {
