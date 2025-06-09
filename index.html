@@ -107,9 +107,30 @@
             $(tr_pre).text(tr_pre_text.replace(/▸/, "▾"))
 
             let indent = get_indent(tr)
+            let collapsed_parent = false
+            let collapsed_parent_indent = 0
             $(tr)
                 .nextUntil((_index, element) => get_indent(element) <= indent)
-                .each((_index, element) => $(element).show())
+                 .each((_index, element) => {
+                    if (collapsed_parent) {
+                        if (get_indent(element) <= collapsed_parent_indent) {
+                            /* reset variables */
+                            collapsed_parent = false
+                            collapsed_parent_indent = 0
+                        }
+                        else {
+                            return // don't show it
+                        }
+                    }
+
+                    if ($(element).text().match(/^\s*▸/)) {
+                        /* setup variables for next iterations */
+                        collapsed_parent = true
+                        collapsed_parent_indent = get_indent(element)
+                    }
+
+                    $(element).show()
+                })
 
             $(tr).removeClass("bg-gray-200")
         }
