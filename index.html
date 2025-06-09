@@ -17,37 +17,14 @@
             <h1 class="font-bold text-center border-t border-l border-gray-400">LV1 SYNTAX TREE</h1>
             <div id="LV1_tree" class="h-full overflow-x-auto overflow-y-auto border-t border-gray-200">
                 <table class="w-full">
-                    <tr onclick="toggleSyntaxTreeNode(this)" class="select-none cursor-pointer hover:bg-gray-100"><td><pre>▾ Folder 4</pre></td></tr>
-                    <tr onclick="toggleSyntaxTreeNode(this)" class="select-none cursor-pointer hover:bg-gray-100 bg-gray-200"><td><pre>  ▸ Folder 4.1</pre></td></tr>
-                    <tr onclick="toggleSyntaxTreeNode(this)" class="select-none cursor-pointer hover:bg-gray-100 bg-gray-200"><td><pre>  ▸ Folder 4.2</pre></td></tr>
-
-                    <tr onclick="toggleSyntaxTreeNode(this)" class="select-none cursor-pointer hover:bg-gray-100"><td><pre>▾ Folder 5</pre></td></tr>
-                    <tr onclick="toggleSyntaxTreeNode(this)" class="select-none cursor-pointer hover:bg-gray-100"><td><pre>    some file</pre></td></tr>
-                    <tr onclick="toggleSyntaxTreeNode(this)" class="select-none cursor-pointer hover:bg-gray-100"><td><pre>    some file</pre></td></tr>
-                    <tr onclick="toggleSyntaxTreeNode(this)" class="select-none cursor-pointer hover:bg-gray-100"><td><pre>    some file</pre></td></tr>
-                    <tr onclick="toggleSyntaxTreeNode(this)" class="select-none cursor-pointer hover:bg-gray-100"><td><pre>    some file</pre></td></tr>
-                    <tr onclick="toggleSyntaxTreeNode(this)" class="select-none cursor-pointer hover:bg-gray-100"><td><pre>    some file</pre></td></tr>
-                    <tr onclick="toggleSyntaxTreeNode(this)" class="select-none cursor-pointer hover:bg-gray-100"><td><pre>    some file</pre></td></tr>
-                    <tr onclick="toggleSyntaxTreeNode(this)" class="select-none cursor-pointer hover:bg-gray-100"><td><pre>    some file</pre></td></tr>
-                    <tr onclick="toggleSyntaxTreeNode(this)" class="select-none cursor-pointer hover:bg-gray-100"><td><pre>    some file</pre></td></tr>
-                    <tr onclick="toggleSyntaxTreeNode(this)" class="select-none cursor-pointer hover:bg-gray-100"><td><pre>    some file</pre></td></tr>
-                    <tr onclick="toggleSyntaxTreeNode(this)" class="select-none cursor-pointer hover:bg-gray-100"><td><pre>    some file xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</pre></td></tr>
-                    <tr onclick="toggleSyntaxTreeNode(this)" class="select-none cursor-pointer hover:bg-gray-100"><td><pre>    some file</pre></td></tr>
-                    <tr onclick="toggleSyntaxTreeNode(this)" class="select-none cursor-pointer hover:bg-gray-100"><td><pre>    some file</pre></td></tr>
-                    <tr onclick="toggleSyntaxTreeNode(this)" class="select-none cursor-pointer hover:bg-gray-100"><td><pre>    some file</pre></td></tr>
-                    <tr onclick="toggleSyntaxTreeNode(this)" class="select-none cursor-pointer hover:bg-gray-100"><td><pre>    some file</pre></td></tr>
-                    <tr onclick="toggleSyntaxTreeNode(this)" class="select-none cursor-pointer hover:bg-gray-100"><td><pre>    some file</pre></td></tr>
-                    <tr onclick="toggleSyntaxTreeNode(this)" class="select-none cursor-pointer hover:bg-gray-100"><td><pre>    some file</pre></td></tr>
-                    <tr onclick="toggleSyntaxTreeNode(this)" class="select-none cursor-pointer hover:bg-gray-100"><td><pre>    some file</pre></td></tr>
-                    <tr onclick="toggleSyntaxTreeNode(this)" class="select-none cursor-pointer hover:bg-gray-100"><td><pre>    some file</pre></td></tr>
-                    <tr onclick="toggleSyntaxTreeNode(this)" class="select-none cursor-pointer hover:bg-gray-100"><td><pre>    some file</pre></td></tr>
-                    <tr onclick="toggleSyntaxTreeNode(this)" class="select-none cursor-pointer hover:bg-gray-100"><td><pre>    some file</pre></td></tr>
                 </table>
             </div>
         </div>
         <div id="LV2_panel" class="flex flex-col flex-1 w-full h-1/2">
             <h1 class="font-bold text-center border-t border-l border-gray-400">LV2 SYNTAX TREE</h1>
             <div id="LV2_tree" class="h-full overflow-x-auto overflow-y-auto border-t border-gray-200">
+                <table class="w-full">
+                </table>
             </div>
         </div>
     </div>
@@ -99,9 +76,16 @@
         })
     }
 
-    const toggleSyntaxTreeNode = tr => {
-        const get_indent = tr => $(tr).find("pre:first").text().search(/\S/)
+    // get indentation of an AST node (table <tr> or .ast.txt line)
+    const get_indent = arg => {
+        if (typeof arg === 'string') {
+            return arg.search(/[▾▸\s]\s[^▾▸\s]/)
+        }
+        // otherwise => it's a <tr>
+        return $(arg).find("pre:first").text().search(/[▾▸\s]\s[^▾▸\s]/)
+    }
 
+    const toggleSyntaxTreeNode = tr => {
         const collapse = tr => {
             let tr_pre = $(tr).find("pre:first")
             let tr_pre_text = tr_pre.text()
@@ -110,7 +94,7 @@
 
             let indent = get_indent(tr)
             $(tr)
-                .nextUntil((_index, element) => get_indent(element) !== indent + 2)
+                .nextUntil((_index, element) => get_indent(element) <= indent)
                 .each((_index, element) => $(element).hide())
 
             $(tr).addClass("bg-gray-200")
@@ -124,7 +108,7 @@
 
             let indent = get_indent(tr)
             $(tr)
-                .nextUntil((_index, element) => get_indent(element) !== indent + 2)
+                .nextUntil((_index, element) => get_indent(element) <= indent)
                 .each((_index, element) => $(element).show())
 
             $(tr).removeClass("bg-gray-200")
@@ -150,6 +134,7 @@
         const res_obj = JSON.parse(res)
         console.log(res_obj)
 
+        /* set console panel */
         if (res_obj["prog"] === "interpreter") {
             let exitcode = res_obj["prog_exitcode"]
             $("#prog_out").text(res_obj["out"]["console.txt"])
@@ -163,8 +148,43 @@
             addLinksInConsole()
             $("#prog_status").hide()
         }
-
         $("#consolepanel").show()
+
+        /* set LV1_tree */
+        $("#LV1_tree table").empty()
+        let LV1_lines = res_obj["out"]["LV1.ast.txt"].split("\n")
+        for (let i = 0; i < LV1_lines.length; ++i) {
+            let prefix = (
+                i + 1 == LV1_lines.length
+                || get_indent(LV1_lines[i + 1]) <= get_indent(LV1_lines[i])
+            )? "  " : "▾ "
+            // /!\ the "prefix" is set after the indentation
+            let prefixedLine = LV1_lines[i].replace(/(\S)/, (_match, group) => prefix + group)
+            let newRow = `<tr onclick="toggleSyntaxTreeNode(this)" `
+                    + `class="select-none cursor-pointer hover:bg-gray-100">`
+                    +`<td><pre>`
+                    + prefixedLine
+                    + `</pre></td></tr>`
+            $("#LV1_tree table").append(newRow)
+        }
+
+        /* set LV2_tree */
+        $("#LV2_tree table").empty()
+        let LV2_lines = res_obj["out"]["LV2.ast.txt"].split("\n")
+        for (let i = 0; i < LV2_lines.length; ++i) {
+            let prefix = (
+                i + 1 == LV2_lines.length
+                || get_indent(LV2_lines[i + 1]) <= get_indent(LV2_lines[i])
+            )? "  " : "▾ "
+            // /!\ the "prefix" is set after the indentation
+            let prefixedLine = LV2_lines[i].replace(/(\S)/, (_match, group) => prefix + group)
+            let newRow = `<tr onclick="toggleSyntaxTreeNode(this)" `
+                    + `class="select-none cursor-pointer hover:bg-gray-100">`
+                    +`<td><pre>`
+                    + prefixedLine
+                    + `</pre></td></tr>`
+            $("#LV2_tree table").append(newRow)
+        }
     }
 
     const execute_src = (src = get_src(), onSuccess = set_res) => {
