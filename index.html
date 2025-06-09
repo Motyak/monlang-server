@@ -15,35 +15,38 @@
     <div id="sidepanel" class="flex-none w-1/5 h-full border-r border-gray-400">
         <div id="LV1_panel" class="flex flex-col flex-1 w-full h-1/2">
             <h1 class="font-bold text-center border-t border-l border-gray-400">LV1 SYNTAX TREE</h1>
-            <ul id="LV1_tree" class="h-full list-none overflow-x-auto overflow-y-auto border-t border-gray-200">
-                <li class="select-none cursor-pointer hover:bg-gray-100"><span class="p-1">▸</span><pre class="inline">A1</pre></li>
-                <li class="select-none cursor-pointer hover:bg-gray-100"><span class="p-1">▾</span><pre class="inline">  A2</pre></li>
-                <li class="select-none cursor-pointer hover:bg-gray-100"><span class="p-1">▾</span><pre class="inline">                                              A3</pre></li>
-                <li class="select-none cursor-pointer hover:bg-gray-100"><span class="p-1">▾</span><pre class="inline">B1</pre></li>
-                <li class="select-none cursor-pointer hover:bg-gray-100"><span class="p-1">▾</span><pre class="inline">  B2</pre></li>
-                
-                <li class="select-none cursor-pointer hover:bg-gray-100"><span class="p-1">▾</span><pre class="inline">C1</pre></li>
-                <li class="select-none cursor-pointer hover:bg-gray-100"><span class="p-1">▾</span><pre class="inline">  C2</pre></li>
-                <li class="select-none cursor-pointer hover:bg-gray-100"><span class="p-1">▾</span><pre class="inline">    C3</pre></li>
-                <li class="select-none cursor-pointer hover:bg-gray-100"><span class="p-1">▾</span><pre class="inline">  C4</pre></li>
+            <div id="LV1_tree" class="h-full overflow-x-auto overflow-y-auto border-t border-gray-200">
+                <pre class="select-none cursor-pointer hover:bg-gray-100">▾ Folder 4</pre>
+                <pre class="select-none cursor-pointer hover:bg-gray-100 bg-gray-200">  ▸ Folder 4.1</pre>
+                <pre class="select-none cursor-pointer hover:bg-gray-100 bg-gray-200">  ▸ Folder 4.2</pre>
 
-                <li class="select-none cursor-pointer hover:bg-gray-100"><span class="p-1">▾</span><pre class="inline">Folder 4</pre></li>
-                <li class="select-none cursor-pointer hover:bg-gray-100"><span class="p-1">▾</span><pre class="inline">  File 1</pre></li>
-                <li class="select-none cursor-pointer hover:bg-gray-100"><span class="p-1">▾</span><pre class="inline">  File 2</pre></li>
-                
-                <li class="select-none cursor-pointer hover:bg-gray-100"><span class="p-1">▾</span><pre class="inline">Folder 4</pre></li>
-                <li class="select-none cursor-pointer hover:bg-gray-100"><span class="p-1">▾</span><pre class="inline">  File 1</pre></li>
-                <li class="select-none cursor-pointer hover:bg-gray-100"><span class="p-1">▾</span><pre class="inline">  File 2</pre></li>
-
-                <li class="select-none cursor-pointer hover:bg-gray-100"><span class="p-1">▾</span><pre class="inline">Folder 4</pre></li>
-                <li class="select-none cursor-pointer hover:bg-gray-100"><span class="p-1">▾</span><pre class="inline">  File 1</pre></li>
-                <li class="select-none cursor-pointer hover:bg-gray-100"><span class="p-1">▾</span><pre class="inline">  File 2</pre></li>
-            </ul>
+                <pre class="select-none cursor-pointer hover:bg-gray-100">▾ Folder 5</pre>
+                <pre class="select-none cursor-pointer hover:bg-gray-100">    some file</pre>
+                <pre class="select-none cursor-pointer hover:bg-gray-100">    some file</pre>
+                <pre class="select-none cursor-pointer hover:bg-gray-100">    some file</pre>
+                <pre class="select-none cursor-pointer hover:bg-gray-100">    some file</pre>
+                <pre class="select-none cursor-pointer hover:bg-gray-100">    some file</pre>
+                <pre class="select-none cursor-pointer hover:bg-gray-100">    some file</pre>
+                <pre class="select-none cursor-pointer hover:bg-gray-100">    some file</pre>
+                <pre class="select-none cursor-pointer hover:bg-gray-100">    some file</pre>
+                <pre class="select-none cursor-pointer hover:bg-gray-100">    some file</pre>
+                <pre class="select-none cursor-pointer hover:bg-gray-100">    some file xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</pre>
+                <pre class="select-none cursor-pointer hover:bg-gray-100">    some file</pre>
+                <pre class="select-none cursor-pointer hover:bg-gray-100">    some file</pre>
+                <pre class="select-none cursor-pointer hover:bg-gray-100">    some file</pre>
+                <pre class="select-none cursor-pointer hover:bg-gray-100">    some file</pre>
+                <pre class="select-none cursor-pointer hover:bg-gray-100">    some file</pre>
+                <pre class="select-none cursor-pointer hover:bg-gray-100">    some file</pre>
+                <pre class="select-none cursor-pointer hover:bg-gray-100">    some file</pre>
+                <pre class="select-none cursor-pointer hover:bg-gray-100">    some file</pre>
+                <pre class="select-none cursor-pointer hover:bg-gray-100">    some file</pre>
+                <pre class="select-none cursor-pointer hover:bg-gray-100">    some file</pre>
+            </div>
         </div>
-        <div id="LV2_tree" class="flex flex-col flex-1 w-full h-1/2 min-w-0">
+        <div id="LV2_panel" class="flex flex-col flex-1 w-full h-1/2">
             <h1 class="font-bold text-center border-t border-l border-gray-400">LV2 SYNTAX TREE</h1>
-            <ul class="overflow-y-auto border-t border-gray-200">
-            </ul>
+            <div id="LV2_tree" class="h-full overflow-x-auto overflow-y-auto border-t border-gray-200">
+            </div>
         </div>
     </div>
     <div id="mainpanel" class="flex flex-col flex-1 w-full h-full min-w-0">
@@ -167,11 +170,11 @@
             }
         })
 
-        // accordion
-        $("li").click(() => {
-            let treeRoot = $(this).closest("ul")
-            let index = $(this).index()
-        })
+        // // accordion
+        // $("li").click(() => {
+        //     let treeRoot = $(this).closest("ul")
+        //     let index = $(this).index()
+        // })
 
         editor.getModel().onDidChangeContent(_event => {
             document.title = get_src() === g_lastExecutedSrc? "src.ml" : "*src.ml"
