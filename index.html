@@ -53,6 +53,7 @@
 
 <script>
     let g_lastExecutedSrc = ""
+    let g_autoExpandTrees = false
 
     // line and col starts at 1
     const jump_to = (line, col) => {
@@ -79,7 +80,7 @@
     // get indentation of an AST node (table <tr> or .ast.txt line)
     const get_indent = arg => {
         if (typeof arg === 'string') {
-            return arg.search(/[▾▸\s]\s[^▾▸\s]/)
+            return arg.search(/\S/)
         }
         // otherwise => it's a <tr>
         return $(arg).find("pre:first").text().search(/[▾▸\s]\s[^▾▸\s]/)
@@ -176,22 +177,65 @@
             let newRows = {"LV1": [], "LV2": []} ;//
 
             /* fill newRows["LV1"] and newRows["LV2"] */
-            ["LV1", "LV2"].forEach(LVx => {
-                let LVx_lines = res_obj["out"][`${LVx}.ast.txt`].split("\n")
-                for (let i = 0; i < LVx_lines.length - 1; ++i) {
-                    let prefix = (
-                        i + 1 == LVx_lines.length
-                        || get_indent(LVx_lines[i + 1]) <= get_indent(LVx_lines[i])
-                    )? "  " : "▾ "
-                    // /!\ the "prefix" is set after the indentation
-                    let prefixedLine = LVx_lines[i].replace(/(\S)/, (_match, group) => prefix + group)
-                    let newRow = `<tr class="select-none cursor-pointer hover:bg-gray-100">`
-                            + `<td><pre class="text-xs">`
-                            + prefixedLine
-                            + `</pre></td></tr>`
-                    newRows[`${LVx}`].push(newRow)
-                }
-            })
+            if (g_autoExpandTrees) {
+                ["LV1", "LV2"].forEach(LVx => {
+                    let LVx_lines = res_obj["out"][`${LVx}.ast.txt`].trimEnd().split("\n")
+                    for (let i = 0; i < LVx_lines.length; ++i) {
+                        let prefix = (
+                            i + 1 === LVx_lines.length
+                            || get_indent(LVx_lines[i + 1]) <= get_indent(LVx_lines[i])
+                        )? "  " : "▾ "
+                        // /!\ the "prefix" is set after the indentation
+                        let prefixedLine = LVx_lines[i].replace(/(\S)/, (_match, group) => prefix + group)
+                        let newRow = `<tr class="select-none cursor-pointer hover:bg-gray-100">`
+                                + `<td><pre class="text-xs">`
+                                + prefixedLine
+                                + `</pre></td></tr>`
+                        newRows[`${LVx}`].push(newRow)
+                    }
+                })
+            }
+            else /* build gradually (default mode) */ {
+                ["LV1", "LV2"].forEach(LVx => {
+                    let LVx_lines = res_obj["out"][`${LVx}.ast.txt`].trimEnd().split("\n")
+                    let malformed_parent = false
+                    for (let i = 0; i < LVx_lines.length; ++i) {
+                        if (i === 0 || LVx_lines[i].match(/~>\s/)) {
+                            malformed_parent = true // or first elem
+                            let prefix = (
+                                i + 1 === LVx_lines.length
+                                || get_indent(LVx_lines[i + 1]) <= get_indent(LVx_lines[i])
+                            )? "  " : "▾ "
+                            // /!\ the "prefix" is set after the indentation
+                            let prefixedLine = LVx_lines[i].replace(/(\S)/, (_match, group) => prefix + group)
+                            let newRow = `<tr class="select-none cursor-pointer hover:bg-gray-100">`
+                                + `<td><pre class="text-xs">`
+                                + prefixedLine
+                                + `</pre></td></tr>`
+                            newRows[`${LVx}`].push(newRow)
+                            continue
+                        }
+                        else if (malformed_parent) {
+                            malformed_parent = false
+                            // goto main logic
+                        }
+                        else if (get_indent(LVx_lines[i]) > 2) {
+                            continue
+                        }
+                        let prefix = (
+                            i + 1 === LVx_lines.length
+                            || get_indent(LVx_lines[i + 1]) <= get_indent(LVx_lines[i])
+                        )? "  " : "▸ "
+                        // /!\ the "prefix" is set after the indentation
+                        let prefixedLine = LVx_lines[i].replace(/(\S)/, (_match, group) => prefix + group)
+                        let newRow = `<tr class="select-none cursor-pointer hover:bg-gray-100 bg-gray-200">`
+                                + `<td><pre class="text-xs">`
+                                + prefixedLine
+                                + `</pre></td></tr>`
+                        newRows[`${LVx}`].push(newRow)
+                    }
+                })
+            }
 
             /* update DOM */
             $("#LV1_tree table").html(newRows["LV1"])
