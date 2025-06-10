@@ -12,7 +12,7 @@
 -->
 
 <div id="globalpanel" class="flex flew-row w-screen h-screen font-mono">
-    <div id="sidepanel" class="flex-none w-1/5 h-full border-r-2 border-gray-300 text-sm">
+    <div id="sidepanel" class="lg:block hidden flex-none w-1/5 h-full border-r-2 border-gray-300 text-sm">
         <div id="LV1_panel" class="flex flex-col flex-1 w-full h-1/2">
             <h1 class="font-bold text-center border-t border-l border-gray-400">LV1 SYNTAX TREE</h1>
             <div id="LV1_tree" class="h-full overflow-x-auto overflow-y-auto border-t border-gray-200">
@@ -53,7 +53,6 @@
 
 <script>
     let g_lastExecutedSrc = ""
-    let g_sidePanelState = 0
 
     // line and col starts at 1
     const jump_to = (line, col) => {
@@ -255,26 +254,8 @@
 
             if (event.ctrlKey && event.key === "b") {
                 event.preventDefault()
-                switch (g_sidePanelState) {
-                    case 0: {
-                        $("#LV1_panel").hide()
-                        $("#LV2_panel").hide()
-                        g_sidePanelState = 1
-                        break
-                    }
-                    case 1: {
-                        $("#sidepanel").hide()
-                        g_sidePanelState = 2
-                        break
-                    }
-                    case 2: {
-                        $("#LV1_panel").show()
-                        $("#LV2_panel").show()
-                        $("#sidepanel").show()
-                        g_sidePanelState = 0
-                        break
-                    }
-                }
+                $("#LV1_panel").toggle()
+                $("#LV2_panel").toggle()
             }
         })
 
