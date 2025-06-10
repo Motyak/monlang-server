@@ -95,9 +95,9 @@
             let indent = get_indent(tr)
             $(tr)
                 .nextUntil((_index, element) => get_indent(element) <= indent)
-                .each((_index, element) => $(element).hide())
-
-            $(tr).addClass("bg-gray-200")
+                .hide()
+                .end()
+                .addClass("bg-gray-200")
         }
 
         const expand = tr => {
@@ -111,7 +111,7 @@
             let collapsed_parent_indent = 0
             $(tr)
                 .nextUntil((_index, element) => get_indent(element) <= indent)
-                 .each((_index, element) => {
+                .each((_index, element) => {
                     if (collapsed_parent) {
                         if (get_indent(element) <= collapsed_parent_indent) {
                             /* reset variables */
@@ -131,8 +131,8 @@
 
                     $(element).show()
                 })
-
-            $(tr).removeClass("bg-gray-200")
+                .end()
+                .removeClass("bg-gray-200")
         }
 
         let tr_pre_text = $(tr).find("pre:first").text()
@@ -161,8 +161,8 @@
             $("#prog_out").text(res_obj["out"]["console.txt"])
             addLinksInConsole()
             $("#prog_status").text(`Program terminated with exit code ${exitcode}`)
-            $("#prog_status").css("border-top-color", exitcode === 0? "green" : "red")
-            $("#prog_status").show()
+                .css("border-top-color", exitcode === 0? "green" : "red")
+                .show()
         }
         else if (res_obj["prog"] === "parser") {
             $("#prog_out").text(res_obj["out"]["traceback.txt"])
@@ -171,13 +171,14 @@
         }
         $("#consolepanel").show()
 
+        /* set side panel */
         setTimeout(() => {
             let newRows = {"LV1": [], "LV2": []} ;//
 
             /* fill newRows["LV1"] and newRows["LV2"] */
             ["LV1", "LV2"].forEach(LVx => {
                 let LVx_lines = res_obj["out"][`${LVx}.ast.txt`].split("\n")
-                for (let i = 0; i < LVx_lines.length; ++i) {
+                for (let i = 0; i < LVx_lines.length - 1; ++i) {
                     let prefix = (
                         i + 1 == LVx_lines.length
                         || get_indent(LVx_lines[i + 1]) <= get_indent(LVx_lines[i])
@@ -195,16 +196,16 @@
             /* update DOM */
             $("#LV1_tree table").html(newRows["LV1"])
             $("#LV2_tree table").html(newRows["LV2"])
-
-        }, 0)
+        }, 16 /*0 makes the UI less responsive*/)
     }
 
     const execute_src = (src = get_src(), onSuccess = set_res) => {
         const clearConsole = () => {
             $("#prog_out").text("")
-            $("#prog_status").text("Executing program...")
-            $("#prog_status").css("border-top-color", "grey")
-            $("#prog_status").show()
+            $("#prog_status")
+                .text("Executing program...")
+                .css("border-top-color", "grey")
+                .show()
         }
         // 20ms is the min delay above which you don't see an ugly blink..
         // ..when executing the simplest `print($true)` program
@@ -243,8 +244,7 @@
 
             if (event.ctrlKey && event.key === "b") {
                 event.preventDefault()
-                $("#LV1_panel").toggle()
-                $("#LV2_panel").toggle()
+                $("#LV1_panel, #LV2_panel").toggle()
             }
         })
 
