@@ -92,6 +92,35 @@
         return $(arg).find("pre:first").text().search(/[▾▸\s]\s[^▾▸\s]/)
     }
 
+    const htmlizeAsExpanded = (LVx_lines, i) => {
+        let prefix = (
+            i + 1 === LVx_lines.length
+            || get_indent(LVx_lines[i + 1]) <= get_indent(LVx_lines[i])
+        )? "  " : "▾ "
+        // /!\ the "prefix" is set after the indentation
+        let prefixedLine = LVx_lines[i].replace(/(\S)/, (_match, group) => prefix + group)
+        return `<tr name="${i}"`
+            + ` class="select-none cursor-pointer hover:bg-gray-100">`
+            + `<td><pre class="text-xs">`
+            + prefixedLine
+            + `</pre></td></tr>`
+    }
+
+    const htmlizeAsCollapsed = (LVx_lines, i) => {
+        let prefix = (
+            i + 1 === LVx_lines.length
+            || get_indent(LVx_lines[i + 1]) <= get_indent(LVx_lines[i])
+        )? "  " : "▸ "
+        // /!\ the "prefix" is set after the indentation
+        let prefixedLine = LVx_lines[i].replace(/(\S)/, (_match, group) => prefix + group)
+        return `<tr name="${i}"`
+                + ` class="select-none cursor-pointer hover:bg-gray-100`
+                + (prefix === "▸ "? ` bg-gray-200` : ``) + `">`
+                + `<td><pre class="text-xs">`
+                + prefixedLine
+                + `</pre></td></tr>`
+    }
+
     const toggleSyntaxTreeNode = (tr, shouldExpandAll = g_autoExpandTrees) => {
         const fetchAstFile = (tr, onSuccess) => {
             let LVx_ast_txt = ""
@@ -178,18 +207,7 @@
                             continue
                         }
 
-                        let prefix = (
-                            i + 1 === LVx_lines.length
-                            || get_indent(LVx_lines[i + 1]) <= get_indent(LVx_lines[i])
-                        )? "  " : "▸ "
-                        // /!\ the "prefix" is set after the indentation
-                        let prefixedLine = LVx_lines[i].replace(/(\S)/, (_match, group) => prefix + group)
-                        let newRow = `<tr name="${i}"`
-                                + ` class="select-none cursor-pointer hover:bg-gray-100`
-                                + (prefix === "▸ "? ` bg-gray-200` : ``) + `">`
-                                + `<td><pre class="text-xs">`
-                                + prefixedLine
-                                + `</pre></td></tr>`
+                        let newRow = htmlizeAsCollapsed(LVx_lines, i)
                         newRows.push(newRow)
                     }
 
@@ -207,17 +225,7 @@
                             break
                         }
 
-                        let prefix = (
-                            i + 1 === LVx_lines.length
-                            || get_indent(LVx_lines[i + 1]) <= get_indent(LVx_lines[i])
-                        )? "  " : "▾ "
-                        // /!\ the "prefix" is set after the indentation
-                        let prefixedLine = LVx_lines[i].replace(/(\S)/, (_match, group) => prefix + group)
-                        let newRow = `<tr name="${i}"`
-                            + ` class="select-none cursor-pointer hover:bg-gray-100">`
-                            + `<td><pre class="text-xs">`
-                            + prefixedLine
-                            + `</pre></td></tr>`
+                        let newRow = htmlizeAsExpanded(LVx_lines, i)
                         newRows.push(newRow)
                     }
 
@@ -274,17 +282,7 @@
                 ["LV1", "LV2"].forEach(LVx => {
                     let LVx_lines = res_obj["out"][`${LVx}.ast.txt`].trimEnd().split("\n")
                     for (let i = 0; i < LVx_lines.length; ++i) {
-                        let prefix = (
-                            i + 1 === LVx_lines.length
-                            || get_indent(LVx_lines[i + 1]) <= get_indent(LVx_lines[i])
-                        )? "  " : "▾ "
-                        // /!\ the "prefix" is set after the indentation
-                        let prefixedLine = LVx_lines[i].replace(/(\S)/, (_match, group) => prefix + group)
-                        let newRow = `<tr name="${i}"`
-                                + ` class="select-none cursor-pointer hover:bg-gray-100">`
-                                + `<td><pre class="text-xs">`
-                                + prefixedLine
-                                + `</pre></td></tr>`
+                        let newRow = htmlizeAsExpanded(LVx_lines, i)
                         newRows[`${LVx}`].push(newRow)
                     }
                 })
@@ -298,17 +296,7 @@
                         if (i === 0 || LVx_lines[i].match(/~>\s/)) {
                             malformed_parent = true // or first elem
                             malformed_parent_indent = get_indent(LVx_lines[i])
-                            let prefix = (
-                                i + 1 === LVx_lines.length
-                                || get_indent(LVx_lines[i + 1]) <= get_indent(LVx_lines[i])
-                            )? "  " : "▾ "
-                            // /!\ the "prefix" is set after the indentation
-                            let prefixedLine = LVx_lines[i].replace(/(\S)/, (_match, group) => prefix + group)
-                            let newRow = `<tr name="${i}"`
-                                + ` class="select-none cursor-pointer hover:bg-gray-100">`
-                                + `<td><pre class="text-xs">`
-                                + prefixedLine
-                                + `</pre></td></tr>`
+                            let newRow = htmlizeAsExpanded(LVx_lines, i)
                             newRows[`${LVx}`].push(newRow)
                             continue
                         }
@@ -322,18 +310,7 @@
                         else if (get_indent(LVx_lines[i]) > 2) {
                             continue
                         }
-                        let prefix = (
-                            i + 1 === LVx_lines.length
-                            || get_indent(LVx_lines[i + 1]) <= get_indent(LVx_lines[i])
-                        )? "  " : "▸ "
-                        // /!\ the "prefix" is set after the indentation
-                        let prefixedLine = LVx_lines[i].replace(/(\S)/, (_match, group) => prefix + group)
-                        let newRow = `<tr name="${i}"`
-                                + ` class="select-none cursor-pointer hover:bg-gray-100`
-                                + (prefix === "▸ "? ` bg-gray-200` : ``) + `">`
-                                + `<td><pre class="text-xs">`
-                                + prefixedLine
-                                + `</pre></td></tr>`
+                        let newRow = htmlizeAsCollapsed(LVx_lines, i)
                         newRows[`${LVx}`].push(newRow)
                     }
                 })
