@@ -15,14 +15,14 @@
     <div id="sidepanel" class="lg:block hidden flex-none w-1/5 h-full border-r-2 border-gray-300 text-sm">
         <div id="LV1_panel" class="flex flex-col flex-1 w-full h-1/2">
             <h1 class="font-bold text-center border-t border-l border-gray-400">LV1 SYNTAX TREE</h1>
-            <div id="LV1_tree" class="h-full overflow-x-auto overflow-y-auto border-t border-gray-200">
+            <div id="LV1_tree" class="h-full overflow-x-auto overflow-y-auto border-t border-gray-200 pb-80">
                 <table class="w-full">
                 </table>
             </div>
         </div>
         <div id="LV2_panel" class="flex flex-col flex-1 w-full h-1/2">
             <h1 class="font-bold text-center border-t border-l border-gray-400">LV2 SYNTAX TREE</h1>
-            <div id="LV2_tree" class="h-full overflow-x-auto overflow-y-auto border-t border-gray-200">
+            <div id="LV2_tree" class="h-full overflow-x-auto overflow-y-auto border-t border-gray-200 pb-80">
                 <table class="w-full">
                 </table>
             </div>
@@ -78,6 +78,7 @@
     }
 
     // get indentation of an AST node (table <tr> or .ast.txt line)
+    // should NOT be used on a <pre> text()
     const get_indent = arg => {
         if (typeof arg === 'string') {
             return arg.search(/\S/)
@@ -96,6 +97,7 @@
             let indent = get_indent(tr)
             $(tr)
                 .nextUntil((_index, element) => get_indent(element) <= indent)
+                // we don't want to delete the rows, only hide them
                 .hide()
                 .end()
                 .addClass("bg-gray-200")
@@ -136,15 +138,88 @@
                 .removeClass("bg-gray-200")
         }
 
+        const expandGradually = tr => {
+            let tr_next = $(tr).next()
+            let tr_next_text = tr_next.text()
+            if (tr_next_text !== ""
+                    && get_indent(tr_next) === get_indent(tr) + 2) {
+                expand(tr) // already fetched => no GET sent
+                return
+            }
+
+            const onSuccess = LVx_ast_txt => {
+                let newRows = []
+                let LVx_lines = LVx_ast_txt.trimEnd().split("\n")
+                for (let i = Number($(tr).attr("name")) + 1; i < LVx_lines.length; ++i) {
+                    if (get_indent(LVx_lines[i]) <= get_indent(tr)) {
+                        break
+                    }
+                    if (get_indent(LVx_lines[i]) > get_indent(tr) + 2) {
+                        continue
+                    }
+
+                    let prefix = (
+                        i + 1 === LVx_lines.length
+                        || get_indent(LVx_lines[i + 1]) <= get_indent(LVx_lines[i])
+                    )? "  " : "▸ "
+                    // /!\ the "prefix" is set after the indentation
+                    let prefixedLine = LVx_lines[i].replace(/(\S)/, (_match, group) => prefix + group)
+                    let newRow = `<tr name="${i}"`
+                            + ` class="select-none cursor-pointer hover:bg-gray-100`
+                            + (prefix === "▸ "? ` bg-gray-200` : ``) + `">`
+                            + `<td><pre class="text-xs">`
+                            + prefixedLine
+                            + `</pre></td></tr>`
+                    newRows.push(newRow)
+                }
+                
+                let tr_pre = $(tr).find("pre:first")
+                let tr_pre_text = tr_pre.text()
+                $(tr_pre).text(tr_pre_text.replace(/▸/, "▾"))
+                $(tr)
+                    .removeClass("bg-gray-200")
+                    .after(newRows)
+            }
+
+            let astFile = ""
+            let closestDivId = $(tr).closest("div").attr("id")
+            if (closestDivId.match(/(^|\W|_)LV1($|\W|_)/) !== null) {
+                astFile = "LV1.ast.txt"
+            }
+            else if (closestDivId.match(/(^|\W|_)LV2($|\W|_)/) !== null) {
+                astFile = "LV2.ast.txt"
+            }
+
+            $.get({
+                url: `out/${astFile}`,
+                success: onSuccess,
+                error: console.error
+            })
+        }
+
+        const expandAll = tr => {
+            // i fetch the LVx.ast.txt file content
+            // (based on tr's parent)
+
+            // i build the required html rows
+
+            // i update the DOM
+        }
+
         let tr_pre_text = $(tr).find("pre:first").text()
         if (tr_pre_text.match(/^\s*▾/)) {
             collapse(tr)
         }
         else if (tr_pre_text.match(/^\s*▸/)) {
-            expand(tr)
+            if (g_autoExpandTrees) {
+                expandAll(tr)
+            }
+            else {
+                expandGradually(tr)
+            }
         }
         else {
-            ; // standalone node => nothing to do
+            ; // leaf node => nothing to do
         }
     }
 
@@ -160,16 +235,15 @@
         if (res_obj["prog"] === "interpreter") {
             let exitcode = res_obj["prog_exitcode"]
             $("#prog_out").text(res_obj["out"]["console.txt"])
-            addLinksInConsole()
             $("#prog_status").text(`Program terminated with exit code ${exitcode}`)
                 .css("border-top-color", exitcode === 0? "green" : "red")
                 .show()
         }
         else if (res_obj["prog"] === "parser") {
             $("#prog_out").text(res_obj["out"]["traceback.txt"])
-            addLinksInConsole()
             $("#prog_status").hide()
         }
+        addLinksInConsole()
         $("#consolepanel").show()
 
         /* set side panel */
@@ -187,7 +261,8 @@
                         )? "  " : "▾ "
                         // /!\ the "prefix" is set after the indentation
                         let prefixedLine = LVx_lines[i].replace(/(\S)/, (_match, group) => prefix + group)
-                        let newRow = `<tr class="select-none cursor-pointer hover:bg-gray-100">`
+                        let newRow = `<tr name="${i}"`
+                                + ` class="select-none cursor-pointer hover:bg-gray-100">`
                                 + `<td><pre class="text-xs">`
                                 + prefixedLine
                                 + `</pre></td></tr>`
@@ -198,17 +273,20 @@
             else /* build gradually (default mode) */ {
                 ["LV1", "LV2"].forEach(LVx => {
                     let LVx_lines = res_obj["out"][`${LVx}.ast.txt`].trimEnd().split("\n")
-                    let malformed_parent = false
+                    let malformed_parent = false // /!\ gets from false to true only one time
+                    let malformed_parent_indent = 0
                     for (let i = 0; i < LVx_lines.length; ++i) {
                         if (i === 0 || LVx_lines[i].match(/~>\s/)) {
                             malformed_parent = true // or first elem
+                            malformed_parent_indent = get_indent(LVx_lines[i])
                             let prefix = (
                                 i + 1 === LVx_lines.length
                                 || get_indent(LVx_lines[i + 1]) <= get_indent(LVx_lines[i])
                             )? "  " : "▾ "
                             // /!\ the "prefix" is set after the indentation
                             let prefixedLine = LVx_lines[i].replace(/(\S)/, (_match, group) => prefix + group)
-                            let newRow = `<tr class="select-none cursor-pointer hover:bg-gray-100">`
+                            let newRow = `<tr name="${i}"`
+                                + ` class="select-none cursor-pointer hover:bg-gray-100">`
                                 + `<td><pre class="text-xs">`
                                 + prefixedLine
                                 + `</pre></td></tr>`
@@ -216,7 +294,10 @@
                             continue
                         }
                         else if (malformed_parent) {
-                            malformed_parent = false
+                            if (get_indent(LVx_lines[i]) > malformed_parent_indent + 2) {
+                                continue
+                            }
+
                             // goto main logic
                         }
                         else if (get_indent(LVx_lines[i]) > 2) {
@@ -228,7 +309,9 @@
                         )? "  " : "▸ "
                         // /!\ the "prefix" is set after the indentation
                         let prefixedLine = LVx_lines[i].replace(/(\S)/, (_match, group) => prefix + group)
-                        let newRow = `<tr class="select-none cursor-pointer hover:bg-gray-100 bg-gray-200">`
+                        let newRow = `<tr name="${i}"`
+                                + ` class="select-none cursor-pointer hover:bg-gray-100`
+                                + (prefix === "▸ "? ` bg-gray-200` : ``) + `">`
                                 + `<td><pre class="text-xs">`
                                 + prefixedLine
                                 + `</pre></td></tr>`

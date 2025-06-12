@@ -13,3 +13,11 @@ curl -sS http://127.0.0.1:55555 -F 'src=@factorial.ml'
 # (otherwise, curl won't send a path for "security reasons"..
 # ..so our server will receive as full path "factorial.ml" instead of "examples/factorial.ml")
 curl -sS http://127.0.0.1:55555 -F 'src=@examples/factorial.ml' -F 'srcpath=examples/factorial.ml'
+
+---
+
+# GET out/ files (without re-executing)
+curl -sS http://127.0.0.1:55555/out/console.txt
+curl -sS http://127.0.0.1:55555/out/LV1.ast.txt
+curl -sS http://127.0.0.1:55555/out/LV2.ast.txt
+curl -sS http://127.0.0.1:55555/out/traceback.txt
