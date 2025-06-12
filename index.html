@@ -15,14 +15,14 @@
     <div id="sidepanel" class="lg:block hidden flex-none w-1/5 h-full border-r-2 border-gray-300 text-sm">
         <div id="LV1_panel" class="flex flex-col flex-1 w-full h-1/2">
             <h1 class="font-bold text-center border-t border-l border-gray-400">LV1 SYNTAX TREE</h1>
-            <div id="LV1_tree" class="h-full overflow-x-auto overflow-y-auto border-t border-gray-200 pb-80">
+            <div id="LV1_tree" class="h-full overflow-x-auto overflow-y-auto border-t border-gray-200">
                 <table class="w-full">
                 </table>
             </div>
         </div>
         <div id="LV2_panel" class="flex flex-col flex-1 w-full h-1/2">
             <h1 class="font-bold text-center border-t border-l border-gray-400">LV2 SYNTAX TREE</h1>
-            <div id="LV2_tree" class="h-full overflow-x-auto overflow-y-auto border-t border-gray-200 pb-80">
+            <div id="LV2_tree" class="h-full overflow-x-auto overflow-y-auto border-t border-gray-200">
                 <table class="w-full">
                 </table>
             </div>
@@ -87,7 +87,7 @@
         return $(arg).find("pre:first").text().search(/[▾▸\s]\s[^▾▸\s]/)
     }
 
-    const toggleSyntaxTreeNode = tr => {
+    const toggleSyntaxTreeNode = (tr, shouldExpandAll = g_autoExpandTrees) => {
         const collapse = tr => {
             let tr_pre = $(tr).find("pre:first")
             let tr_pre_text = tr_pre.text()
@@ -198,12 +198,50 @@
         }
 
         const expandAll = tr => {
-            // i fetch the LVx.ast.txt file content
-            // (based on tr's parent)
+            const onSuccess = LVx_ast_txt => {
+                let newRows = []
+                let LVx_lines = LVx_ast_txt.trimEnd().split("\n")
+                for (let i = Number($(tr).attr("name")) + 1; i < LVx_lines.length; ++i) {
+                    if (get_indent(LVx_lines[i]) <= get_indent(tr)) {
+                        break
+                    }
 
-            // i build the required html rows
+                    let prefix = (
+                        i + 1 === LVx_lines.length
+                        || get_indent(LVx_lines[i + 1]) <= get_indent(LVx_lines[i])
+                    )? "  " : "▾ "
+                    // /!\ the "prefix" is set after the indentation
+                    let prefixedLine = LVx_lines[i].replace(/(\S)/, (_match, group) => prefix + group)
+                    let newRow = `<tr name="${i}"`
+                        + ` class="select-none cursor-pointer hover:bg-gray-100">`
+                        + `<td><pre class="text-xs">`
+                        + prefixedLine
+                        + `</pre></td></tr>`
+                    newRows.push(newRow)
+                }
 
-            // i update the DOM
+                let tr_pre = $(tr).find("pre:first")
+                let tr_pre_text = tr_pre.text()
+                $(tr_pre).text(tr_pre_text.replace(/▸/, "▾"))
+                $(tr)
+                    .removeClass("bg-gray-200")
+                    .after(newRows)
+            }
+
+            let astFile = ""
+            let closestDivId = $(tr).closest("div").attr("id")
+            if (closestDivId.match(/(^|\W|_)LV1($|\W|_)/) !== null) {
+                astFile = "LV1.ast.txt"
+            }
+            else if (closestDivId.match(/(^|\W|_)LV2($|\W|_)/) !== null) {
+                astFile = "LV2.ast.txt"
+            }
+
+            $.get({
+                url: `out/${astFile}`,
+                success: onSuccess,
+                error: console.error
+            })
         }
 
         let tr_pre_text = $(tr).find("pre:first").text()
@@ -211,7 +249,7 @@
             collapse(tr)
         }
         else if (tr_pre_text.match(/^\s*▸/)) {
-            if (g_autoExpandTrees) {
+            if (shouldExpandAll) {
                 expandAll(tr)
             }
             else {
@@ -376,6 +414,10 @@
         })
 
         $("#LV1_tree table, #LV2_tree table").on("click", "tr", (event) => {
+            if (event.shiftKey) {
+                toggleSyntaxTreeNode(event.currentTarget, /*shouldExpandAll*/true)
+                return
+            }
             toggleSyntaxTreeNode(event.currentTarget)
         })
 
