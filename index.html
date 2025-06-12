@@ -47,6 +47,7 @@
     const editor_conf = {
         automaticLayout: true,
         lineNumbersMinChars: 3,
+        value: decodeURI(PHP_GET_src),
     }
     editor = monaco.editor.create($("#editorpanel")[0], editor_conf)
 </script>
@@ -380,7 +381,13 @@
         })
 
         editor.getModel().onDidChangeContent(_event => {
-            document.title = get_src() === g_lastExecutedSrc? "src.ml" : "*src.ml"
+            let src = get_src()
+            document.title = src === g_lastExecutedSrc? "src.ml" : "*src.ml"
+
+            let urlParams = new URLSearchParams(window.location.search)
+            urlParams.set("src", encodeURI(src))
+            let newURL = `${window.location.pathname}?${urlParams.toString()}`;
+            window.history.replaceState({path: newURL}, "", newURL)
         })
     })
 </script>

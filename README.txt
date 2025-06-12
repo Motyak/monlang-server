@@ -21,3 +21,9 @@ curl -sS http://127.0.0.1:55555/out/console.txt
 curl -sS http://127.0.0.1:55555/out/LV1.ast.txt
 curl -sS http://127.0.0.1:55555/out/LV2.ast.txt
 curl -sS http://127.0.0.1:55555/out/traceback.txt
+
+---
+
+you can bookmark programs (ctrl+D outside of the editor focus),
+a query parameter is automatically updated as the editor content changes.
+e.g.: http://127.0.0.1:55555/?src=print%28%2522Hello%2C%2520World%21%2522%29%250A
