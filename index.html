@@ -55,6 +55,11 @@
     let g_lastExecutedSrc = ""
     let g_autoExpandTrees = false
 
+    /* enumerate node expansion methods */
+    const SHOW_HIDDEN = Symbol() // don't fetch anything, show hidden items
+    const GET_GRADUALLY = Symbol() // only fetch next level, if missing
+    const GET_ALL = Symbol() // (re-)fetch everything
+
     // line and col starts at 1
     const jump_to = (line, col) => {
         editor.revealLineInCenter(line)
@@ -88,161 +93,141 @@
     }
 
     const toggleSyntaxTreeNode = (tr, shouldExpandAll = g_autoExpandTrees) => {
+        const fetchAstFile = (tr, onSuccess) => {
+            let LVx_ast_txt = ""
+            let closestDivId = $(tr).closest("div").attr("id")
+            if (closestDivId.match(/(^|\W|_)LV1($|\W|_)/) !== null) {
+                LVx_ast_txt = "LV1.ast.txt"
+            }
+            else if (closestDivId.match(/(^|\W|_)LV2($|\W|_)/) !== null) {
+                LVx_ast_txt = "LV2.ast.txt"
+            }
+
+            $.get({
+                url: `out/${LVx_ast_txt}`,
+                success: onSuccess,
+                error: console.error
+            })
+        }
+
         const collapse = tr => {
             let tr_pre = $(tr).find("pre:first")
             let tr_pre_text = tr_pre.text()
-
             $(tr_pre).text(tr_pre_text.replace(/▾/, "▸"))
 
-            let indent = get_indent(tr)
+            let tr_indent = get_indent(tr)
             $(tr)
-                .nextUntil((_index, element) => get_indent(element) <= indent)
+                .addClass("bg-gray-200")
+                .nextUntil((_index, element) => get_indent(element) <= tr_indent)
                 // we don't want to delete the rows, only hide them
                 .hide()
-                .end()
-                .addClass("bg-gray-200")
         }
 
-        const expand = tr => {
+        const expand = (tr, expansionMethod = SHOW_HIDDEN) => {
             let tr_pre = $(tr).find("pre:first")
             let tr_pre_text = tr_pre.text()
-
             $(tr_pre).text(tr_pre_text.replace(/▸/, "▾"))
+            $(tr).removeClass("bg-gray-200")
 
-            let indent = get_indent(tr)
-            let collapsed_parent = false
-            let collapsed_parent_indent = 0
-            $(tr)
-                .nextUntil((_index, element) => get_indent(element) <= indent)
-                .each((_index, element) => {
-                    if (collapsed_parent) {
-                        if (get_indent(element) <= collapsed_parent_indent) {
-                            /* reset variables */
-                            collapsed_parent = false
-                            collapsed_parent_indent = 0
+            if (expansionMethod === SHOW_HIDDEN) {
+                let tr_indent = get_indent(tr)
+                let collapsed_parent = false
+                let collapsed_parent_indent = 0
+                $(tr)
+                    .nextUntil((_index, element) => get_indent(element) <= tr_indent)
+                    .each((_index, element) => {
+                        if (collapsed_parent) {
+                            if (get_indent(element) <= collapsed_parent_indent) {
+                                /* reset variables */
+                                collapsed_parent = false
+                                collapsed_parent_indent = 0
+                            }
+                            else {
+                                return // don't show it
+                            }
                         }
-                        else {
-                            return // don't show it
+
+                        if ($(element).text().match(/^\s*▸/)) {
+                            /* setup variables for next iterations */
+                            collapsed_parent = true
+                            collapsed_parent_indent = get_indent(element)
                         }
-                    }
 
-                    if ($(element).text().match(/^\s*▸/)) {
-                        /* setup variables for next iterations */
-                        collapsed_parent = true
-                        collapsed_parent_indent = get_indent(element)
-                    }
-
-                    $(element).show()
-                })
-                .end()
-                .removeClass("bg-gray-200")
-        }
-
-        const expandGradually = tr => {
-            let tr_next = $(tr).next()
-            let tr_next_text = tr_next.text()
-            if (tr_next_text !== ""
-                    && get_indent(tr_next) === get_indent(tr) + 2) {
-                expand(tr) // already fetched => no GET sent
-                return
+                        $(element).show()
+                    })
             }
 
-            const onSuccess = LVx_ast_txt => {
-                let newRows = []
-                let LVx_lines = LVx_ast_txt.trimEnd().split("\n")
-                for (let i = Number($(tr).attr("name")) + 1; i < LVx_lines.length; ++i) {
-                    if (get_indent(LVx_lines[i]) <= get_indent(tr)) {
-                        break
-                    }
-                    if (get_indent(LVx_lines[i]) > get_indent(tr) + 2) {
-                        continue
+            else if (expansionMethod === GET_GRADUALLY) {
+                let tr_indent = get_indent(tr)
+                let tr_next = $(tr).next()
+                let tr_next_text = tr_next.text()
+                if (tr_next_text !== ""
+                        && get_indent(tr_next) === tr_indent + 2) {
+                    expand(tr, SHOW_HIDDEN) // already fetched => no GET sent
+                    return
+                }
+
+                fetchAstFile(tr, LVx_ast_txt => {
+                    let newRows = []
+                    let LVx_lines = LVx_ast_txt.trimEnd().split("\n")
+                    for (let i = Number($(tr).attr("name")) + 1; i < LVx_lines.length; ++i) {
+                        if (get_indent(LVx_lines[i]) <= tr_indent) {
+                            break
+                        }
+                        if (get_indent(LVx_lines[i]) > tr_indent + 2) {
+                            continue
+                        }
+
+                        let prefix = (
+                            i + 1 === LVx_lines.length
+                            || get_indent(LVx_lines[i + 1]) <= get_indent(LVx_lines[i])
+                        )? "  " : "▸ "
+                        // /!\ the "prefix" is set after the indentation
+                        let prefixedLine = LVx_lines[i].replace(/(\S)/, (_match, group) => prefix + group)
+                        let newRow = `<tr name="${i}"`
+                                + ` class="select-none cursor-pointer hover:bg-gray-100`
+                                + (prefix === "▸ "? ` bg-gray-200` : ``) + `">`
+                                + `<td><pre class="text-xs">`
+                                + prefixedLine
+                                + `</pre></td></tr>`
+                        newRows.push(newRow)
                     }
 
-                    let prefix = (
-                        i + 1 === LVx_lines.length
-                        || get_indent(LVx_lines[i + 1]) <= get_indent(LVx_lines[i])
-                    )? "  " : "▸ "
-                    // /!\ the "prefix" is set after the indentation
-                    let prefixedLine = LVx_lines[i].replace(/(\S)/, (_match, group) => prefix + group)
-                    let newRow = `<tr name="${i}"`
-                            + ` class="select-none cursor-pointer hover:bg-gray-100`
-                            + (prefix === "▸ "? ` bg-gray-200` : ``) + `">`
+                    $(tr).after(newRows)
+                })
+            }
+            
+            else if (expansionMethod === GET_ALL) {
+                let tr_indent = get_indent(tr)
+                fetchAstFile(tr, LVx_ast_txt => {
+                    let newRows = []
+                    let LVx_lines = LVx_ast_txt.trimEnd().split("\n")
+                    for (let i = Number($(tr).attr("name")) + 1; i < LVx_lines.length; ++i) {
+                        if (get_indent(LVx_lines[i]) <= tr_indent) {
+                            break
+                        }
+
+                        let prefix = (
+                            i + 1 === LVx_lines.length
+                            || get_indent(LVx_lines[i + 1]) <= get_indent(LVx_lines[i])
+                        )? "  " : "▾ "
+                        // /!\ the "prefix" is set after the indentation
+                        let prefixedLine = LVx_lines[i].replace(/(\S)/, (_match, group) => prefix + group)
+                        let newRow = `<tr name="${i}"`
+                            + ` class="select-none cursor-pointer hover:bg-gray-100">`
                             + `<td><pre class="text-xs">`
                             + prefixedLine
                             + `</pre></td></tr>`
-                    newRows.push(newRow)
-                }
-                
-                let tr_pre = $(tr).find("pre:first")
-                let tr_pre_text = tr_pre.text()
-                $(tr_pre).text(tr_pre_text.replace(/▸/, "▾"))
-                $(tr)
-                    .removeClass("bg-gray-200")
-                    .after(newRows)
-            }
-
-            let astFile = ""
-            let closestDivId = $(tr).closest("div").attr("id")
-            if (closestDivId.match(/(^|\W|_)LV1($|\W|_)/) !== null) {
-                astFile = "LV1.ast.txt"
-            }
-            else if (closestDivId.match(/(^|\W|_)LV2($|\W|_)/) !== null) {
-                astFile = "LV2.ast.txt"
-            }
-
-            $.get({
-                url: `out/${astFile}`,
-                success: onSuccess,
-                error: console.error
-            })
-        }
-
-        const expandAll = tr => {
-            const onSuccess = LVx_ast_txt => {
-                let newRows = []
-                let LVx_lines = LVx_ast_txt.trimEnd().split("\n")
-                for (let i = Number($(tr).attr("name")) + 1; i < LVx_lines.length; ++i) {
-                    if (get_indent(LVx_lines[i]) <= get_indent(tr)) {
-                        break
+                        newRows.push(newRow)
                     }
 
-                    let prefix = (
-                        i + 1 === LVx_lines.length
-                        || get_indent(LVx_lines[i + 1]) <= get_indent(LVx_lines[i])
-                    )? "  " : "▾ "
-                    // /!\ the "prefix" is set after the indentation
-                    let prefixedLine = LVx_lines[i].replace(/(\S)/, (_match, group) => prefix + group)
-                    let newRow = `<tr name="${i}"`
-                        + ` class="select-none cursor-pointer hover:bg-gray-100">`
-                        + `<td><pre class="text-xs">`
-                        + prefixedLine
-                        + `</pre></td></tr>`
-                    newRows.push(newRow)
-                }
-
-                let tr_pre = $(tr).find("pre:first")
-                let tr_pre_text = tr_pre.text()
-                $(tr_pre).text(tr_pre_text.replace(/▸/, "▾"))
-                $(tr)
-                    .removeClass("bg-gray-200")
-                    .nextUntil((_index, element) => get_indent(element) <= get_indent(tr))
-                    .replaceWith(newRows)
+                    $(tr)
+                        .nextUntil((_index, element) => get_indent(element) <= tr_indent)
+                        .remove()
+                        .end()
+                        .after(newRows)
+                })
             }
-
-            let astFile = ""
-            let closestDivId = $(tr).closest("div").attr("id")
-            if (closestDivId.match(/(^|\W|_)LV1($|\W|_)/) !== null) {
-                astFile = "LV1.ast.txt"
-            }
-            else if (closestDivId.match(/(^|\W|_)LV2($|\W|_)/) !== null) {
-                astFile = "LV2.ast.txt"
-            }
-
-            $.get({
-                url: `out/${astFile}`,
-                success: onSuccess,
-                error: console.error
-            })
         }
 
         let tr_pre_text = $(tr).find("pre:first").text()
@@ -250,12 +235,7 @@
             collapse(tr)
         }
         else if (tr_pre_text.match(/^\s*▸/)) {
-            if (shouldExpandAll) {
-                expandAll(tr)
-            }
-            else {
-                expandGradually(tr)
-            }
+            expand(tr, shouldExpandAll? GET_ALL : GET_GRADUALLY)
         }
         else {
             ; // leaf node => nothing to do
