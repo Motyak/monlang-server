@@ -50,6 +50,7 @@
         value: decodeURI(PHP_GET_src),
     }
     editor = monaco.editor.create($("#editorpanel")[0], editor_conf)
+    editor.getModel().pushEOL(monaco.editor.EndOfLineSequence.LF)
 </script>
 
 <script>
