@@ -4,8 +4,6 @@
 
 <link href="https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min/vs/editor/editor.main.css" rel="stylesheet">
 
-<title>src.ml</title>
-
 <!--
 `min-w-0` => to prevent `flex-1 w-full` from expanding beyond its parent (viewport)
 `min-h-0` => to prevent `flex-1 h-full` from expanding beyond its parent (viewport)
@@ -38,13 +36,29 @@
 </div>
 
 <script>
+    let queryParams = new URLSearchParams(window.location.search)
     let editor; // forward declaration
+
+    let SRCNAME = queryParams.get("srcname") || "src.ml"
+    SRCNAME = SRCNAME
+        .replace(/^\.(?=$|\.$)|(?<=^\.)\.$/g, "Dot")
+        .replace(/[\/:]/g, "_") // sanitize filename
+    /* normalize query parameters */
+    {
+        let SRC = queryParams.get("src") ?? ""
+        queryParams.set("srcname", SRCNAME)
+        queryParams.set("src", SRC)
+
+        let newURL = `${window.location.pathname}?srcname=${SRCNAME}&src=${SRC}`
+        window.history.replaceState({path: newURL}, "", newURL)
+    }
+    
+    document.title = SRCNAME
 </script>
 
 <script type="module">
     import * as monaco from "https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/+esm"
 
-    let queryParams = new URLSearchParams(window.location.search)
     const editor_conf = {
         automaticLayout: true,
         lineNumbersMinChars: 3,
@@ -340,7 +354,7 @@
         const timeout_clearConsole = setTimeout(clearConsole, 100)
 
         const formData = new FormData()
-        formData.append("src", new Blob([src]), "src.ml")
+        formData.append("src", new Blob([src]), SRCNAME)
         $.post({
             data: formData,
             contentType: false,
@@ -360,7 +374,7 @@
                 let src = get_src()
                 execute_src(src)
                 g_lastExecutedSrc = src
-                document.title = "src.ml"
+                document.title = SRCNAME
             }
 
             if (event.ctrlKey && event.key === "j") {
@@ -384,11 +398,10 @@
 
         editor.getModel().onDidChangeContent(_event => {
             let src = get_src()
-            document.title = src === g_lastExecutedSrc? "src.ml" : "*src.ml"
+            document.title = (src !== g_lastExecutedSrc? "*" : "") + SRCNAME
 
-            let urlParams = new URLSearchParams(window.location.search)
-            urlParams.set("src", encodeURI(src))
-            let newURL = `${window.location.pathname}?${urlParams.toString()}`;
+            queryParams.set("src", encodeURI(src))
+            let newURL = `${window.location.pathname}?srcname=${SRCNAME}&src=${encodeURI(src)}`;
             window.history.replaceState({path: newURL}, "", newURL)
         })
     })
