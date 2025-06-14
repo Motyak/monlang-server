@@ -39,18 +39,19 @@
     let queryParams = new URLSearchParams(window.location.search)
     let editor; // forward declaration
 
-    let SRCNAME = queryParams.get("srcname") || "src.ml"
-    SRCNAME = SRCNAME
-        .replace(/^\.(?=$|\.$)|(?<=^\.)\.$/g, "Dot")
-        .replace(/[\/:]/g, "_") // sanitize filename
+    const encodeUriAll = str => {
+        return encodeURIComponent(str).replace(/[!'()*]/g, c => {
+            return "%" + c.charCodeAt(0).toString(16)
+        })
+    }
+
+    let SRCNAME = encodeURIComponent(queryParams.get("srcname") || "src.ml")
+    SRCNAME = SRCNAME.replace(/^\.(?=$|\.$)|(?<=^\.)\.$/g, "Dot") // sanitize filename
     /* normalize query parameters */
     {
         let SRC = queryParams.get("src") ?? ""
-        queryParams.set("srcname", SRCNAME)
-        queryParams.set("src", SRC)
-
-        let newURL = `${window.location.pathname}?srcname=${SRCNAME}&src=${SRC}`
-        window.history.replaceState({path: newURL}, "", newURL)
+        let newUrl = `${window.location.pathname}?srcname=${SRCNAME}&src=${encodeUriAll(SRC)}`
+        window.history.replaceState({path: newUrl}, "", newUrl)
     }
     
     document.title = SRCNAME
@@ -400,9 +401,8 @@
             let src = get_src()
             document.title = (src !== g_lastExecutedSrc? "*" : "") + SRCNAME
 
-            queryParams.set("src", encodeURI(src))
-            let newURL = `${window.location.pathname}?srcname=${SRCNAME}&src=${encodeURI(src)}`;
-            window.history.replaceState({path: newURL}, "", newURL)
+            let newUrl = `${window.location.pathname}?srcname=${SRCNAME}&src=${encodeUriAll(src)}`;
+            window.history.replaceState({path: newUrl}, "", newUrl)
         })
     })
 </script>
