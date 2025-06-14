@@ -44,10 +44,11 @@
 <script type="module">
     import * as monaco from "https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/+esm"
 
+    let queryParams = new URLSearchParams(window.location.search)
     const editor_conf = {
         automaticLayout: true,
         lineNumbersMinChars: 3,
-        value: decodeURI(PHP_GET_src),
+        value: decodeURI(queryParams.get("src") ?? ""),
     }
     editor = monaco.editor.create($("#editorpanel")[0], editor_conf)
     editor.getModel().pushEOL(monaco.editor.EndOfLineSequence.LF)

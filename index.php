@@ -19,10 +19,6 @@
 
         exit;
     }
+
+    include("./index.html");
 ?>
-
-<script>
-    const PHP_GET_src = "<?php echo $_GET["src"] ?? "" ?>"
-</script>
-
-<?php include("./index.html"); ?>
