@@ -49,8 +49,8 @@
         queryParams.set("srcname", SRCNAME)
         queryParams.set("src", SRC)
 
-        let newURL = `${window.location.pathname}?srcname=${SRCNAME}&src=${SRC}`
-        window.history.replaceState({path: newURL}, "", newURL)
+        let newUrl = `${window.location.pathname}?srcname=${encodeURI(SRCNAME)}&src=${encodeURI(SRC)}`
+        window.history.replaceState({path: newUrl}, "", newUrl)
     }
     
     document.title = SRCNAME
@@ -400,9 +400,8 @@
             let src = get_src()
             document.title = (src !== g_lastExecutedSrc? "*" : "") + SRCNAME
 
-            queryParams.set("src", encodeURI(src))
-            let newURL = `${window.location.pathname}?srcname=${SRCNAME}&src=${encodeURI(src)}`;
-            window.history.replaceState({path: newURL}, "", newURL)
+            let newUrl = `${window.location.pathname}?srcname=${encodeURI(SRCNAME)}&src=${encodeURI(src)}`;
+            window.history.replaceState({path: newUrl}, "", newUrl)
         })
     })
 </script>
