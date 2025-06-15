@@ -14,6 +14,8 @@
                 "LV2.ast.txt" => file_get_contents("out/LV2.ast.txt"),
                 "traceback.txt" => file_get_contents("out/traceback.txt"),
                 "console.txt" => file_get_contents("out/console.txt"),
+                "LV1.tokens.json" => json_decode(file_get_contents("out/LV1.tokens.json")),
+                "LV2.tokens.json" => json_decode(file_get_contents("out/LV2.tokens.json")),
             )
         )), "\n";
 

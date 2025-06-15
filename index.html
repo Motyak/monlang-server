@@ -66,6 +66,7 @@
 <script>
     let g_lastExecutedSrc = ""
     let g_autoExpandTrees = false
+    let g_resObj = {}
 
     /* enumerate node expansion methods */
     const SHOW_HIDDEN = Symbol() // don't fetch anything, show hidden items
@@ -267,19 +268,19 @@
 
     const get_res = () => $("#prog_out").text()
     const set_res = res => {
-        const res_obj = JSON.parse(res)
-        console.log(res_obj)
+        g_resObj = JSON.parse(res)
+        console.log(g_resObj)
 
         /* set console panel */
-        if (res_obj["prog"] === "interpreter") {
-            let exitcode = res_obj["prog_exitcode"]
-            $("#prog_out").text(res_obj["out"]["console.txt"])
+        if (g_resObj["prog"] === "interpreter") {
+            let exitcode = g_resObj["prog_exitcode"]
+            $("#prog_out").text(g_resObj["out"]["console.txt"])
             $("#prog_status").text(`Program terminated with exit code ${exitcode}`)
                 .css("border-top-color", exitcode === 0? "green" : "red")
                 .show()
         }
-        else if (res_obj["prog"] === "parser") {
-            $("#prog_out").text(res_obj["out"]["traceback.txt"])
+        else if (g_resObj["prog"] === "parser") {
+            $("#prog_out").text(g_resObj["out"]["traceback.txt"])
             $("#prog_status").hide()
         }
         addLinksInConsole()
@@ -292,7 +293,7 @@
             /* fill newRows["LV1"] and newRows["LV2"] */
             if (g_autoExpandTrees) {
                 ["LV1", "LV2"].forEach(LVx => {
-                    let LVx_lines = res_obj["out"][`${LVx}.ast.txt`].trimEnd().split("\n")
+                    let LVx_lines = g_resObj["out"][`${LVx}.ast.txt`].trimEnd().split("\n")
                     for (let i = 0; i < LVx_lines.length; ++i) {
                         let newRow = htmlizeAsExpanded(LVx_lines, i)
                         newRows[`${LVx}`].push(newRow)
@@ -301,7 +302,7 @@
             }
             else /* build gradually (default mode) */ {
                 ["LV1", "LV2"].forEach(LVx => {
-                    let LVx_lines = res_obj["out"][`${LVx}.ast.txt`].trimEnd().split("\n")
+                    let LVx_lines = g_resObj["out"][`${LVx}.ast.txt`].trimEnd().split("\n")
                     let malformed_parent = false // /!\ gets from false to true only one time
                     let malformed_parent_indent = 0
                     for (let i = 0; i < LVx_lines.length; ++i) {
