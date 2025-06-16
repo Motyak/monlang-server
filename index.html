@@ -444,6 +444,10 @@
             $("#LV1_tree table, #LV2_tree table")
                 .on("click", "tr", event => {
                     editor.focus() // to keep the selection blue
+                    if (event.ctrlKey) {
+                        saveViewState = null
+                        return
+                    }
                     if (event.shiftKey) {
                         toggleSyntaxTreeNode(event.currentTarget, /*shouldExpandAll*/true)
                         return
