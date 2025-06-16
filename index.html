@@ -61,12 +61,14 @@
     }
     editor = monaco.editor.create($("#editorpanel")[0], editor_conf)
     editor.getModel().pushEOL(monaco.editor.EndOfLineSequence.LF)
+    editor.focus() // autofocus
 </script>
 
 <script>
     let g_lastExecutedSrc = ""
     let g_autoExpandTrees = false
     let g_resObj = {}
+    let g_to_token_id = {"LV1": [], "LV2": []} ;//
 
     /* enumerate node expansion methods */
     const SHOW_HIDDEN = Symbol() // don't fetch anything, show hidden items
@@ -93,6 +95,22 @@
                 (_match, filename, line, col) => asLink(filename, line, col)
             )
         })
+    }
+
+    // get associated token from tr index and parent
+    const get_token = tr => {
+        let LVx = ""
+        let closestDivId = $(tr).closest("div").attr("id")
+        if (closestDivId.match(/(^|\W|_)LV1($|\W|_)/) != null) {
+            LVx = "LV1"
+        }
+        else if (closestDivId.match(/(^|\W|_)LV2($|\W|_)/) != null) {
+            LVx = "LV2"
+        }
+
+        let tr_index = Number($(tr).attr("name"))
+        let token_id = g_to_token_id[LVx][tr_index]
+        return g_resObj["out"][`${LVx}.tokens.json`]["list"][token_id]
     }
 
     // get indentation of an AST node (table <tr> or .ast.txt line)
@@ -138,10 +156,10 @@
         const fetchAstFile = (tr, onSuccess) => {
             let LVx_ast_txt = ""
             let closestDivId = $(tr).closest("div").attr("id")
-            if (closestDivId.match(/(^|\W|_)LV1($|\W|_)/) !== null) {
+            if (closestDivId.match(/(^|\W|_)LV1($|\W|_)/) != null) {
                 LVx_ast_txt = "LV1.ast.txt"
             }
-            else if (closestDivId.match(/(^|\W|_)LV2($|\W|_)/) !== null) {
+            else if (closestDivId.match(/(^|\W|_)LV2($|\W|_)/) != null) {
                 LVx_ast_txt = "LV2.ast.txt"
             }
 
@@ -269,7 +287,44 @@
     const get_res = () => $("#prog_out").text()
     const set_res = res => {
         g_resObj = JSON.parse(res)
-        console.log(g_resObj)
+        console.log(g_resObj) ; //
+
+        /* construct `tr index to token id` list */
+        ["LV1", "LV2"].forEach(LVx => {
+            let LVx_ast_txt = g_resObj["out"][`${LVx}.ast.txt`]
+            let LVx_lines = LVx_ast_txt.trimEnd().split("\n")
+            let tokenList = g_resObj["out"][`${LVx}.tokens.json`]["list"]
+            let i = 0 // LVx_ast_txt index
+            let j = 0 // tokenList index
+            for (; i < LVx_lines.length; ++i) {
+                let expectedTokenName = ""
+                let match = LVx_lines[i].match(/^ *(?:~|-)> (?:\w+(?: #\d+)?: )?([A-Z][a-z_]\w+)(?: #\d+)?/)
+                if (match) {
+                    expectedTokenName = match[1]
+                }
+                else {
+                    match = LVx_lines[i].match(/\b(block|body)\b/)
+                    if (match) {
+                        expectedTokenName = "BlockExpression"
+                    }
+                    else {
+                        match = LVx_lines[i].match(/\b(parameter|variadic parameters|operator)\b/)
+                        if (match) {
+                            expectedTokenName = "Symbol"
+                        }
+                    }
+                }
+                if (expectedTokenName === "") {
+                    g_to_token_id[LVx][i] = null // no token assigned
+                    continue
+                }
+                while (tokenList[j]["name"] !== expectedTokenName && j + 1 < tokenList.length) {
+                    j += 1
+                }
+                g_to_token_id[LVx][i] = j
+                j += 1
+            }
+        })
 
         /* set console panel */
         if (g_resObj["prog"] === "interpreter") {
@@ -288,7 +343,7 @@
 
         /* set side panel */
         setTimeout(() => {
-            let newRows = {"LV1": [], "LV2": []} ;//
+            let newRows = {"LV1": [], "LV2": []}
 
             /* fill newRows["LV1"] and newRows["LV2"] */
             if (g_autoExpandTrees) {
@@ -384,13 +439,65 @@
             }
         })
 
-        $("#LV1_tree table, #LV2_tree table").on("click", "tr", (event) => {
-            if (event.shiftKey) {
-                toggleSyntaxTreeNode(event.currentTarget, /*shouldExpandAll*/true)
-                return
-            }
-            toggleSyntaxTreeNode(event.currentTarget)
-        })
+        {
+            let saveViewState = null
+            $("#LV1_tree table, #LV2_tree table")
+                .on("click", "tr", event => {
+                    editor.focus() // to keep the selection blue
+                    if (event.shiftKey) {
+                        toggleSyntaxTreeNode(event.currentTarget, /*shouldExpandAll*/true)
+                        return
+                    }
+                    toggleSyntaxTreeNode(event.currentTarget)
+                })
+                .on("mouseenter", "tr", event => {
+                    /* get associated token in res obj */
+                    let tr = event.currentTarget
+                    let token = get_token(tr)
+
+                    if (token == null || token["is_malformed"]) {
+                        /* restore view state */
+                        if (saveViewState != null) {
+                            editor.setPosition(saveViewState.position)
+                            editor.setScrollTop(saveViewState.scrollTop)
+                            editor.setScrollLeft(saveViewState.scrollLeft)
+                            editor.setSelections(saveViewState.selections)
+                            saveViewState = null
+                        }
+                        return
+                    }
+
+                    /* backup view state */
+                    if (saveViewState == null) {
+                        saveViewState = {
+                            position: editor.getPosition(),
+                            scrollTop: editor.getScrollTop(),
+                            scrollLeft: editor.getScrollLeft(),
+                            selections: editor.getSelections()
+                        }
+                    }
+
+                    editor.setSelection({
+                        endColumn: token["end"]["column"],
+                        endLineNumber: token["end"]["line"],
+                        startColumn: token["start"]["column"],
+                        startLineNumber: token["start"]["line"]
+                    })
+
+                    editor.revealLineInCenter(token["start"]["line"])
+                    editor.focus()
+                })
+                .on("mouseleave", event => {
+                    /* restore view state */
+                    if (saveViewState != null) {
+                        editor.setPosition(saveViewState.position)
+                        editor.setScrollTop(saveViewState.scrollTop)
+                        editor.setScrollLeft(saveViewState.scrollLeft)
+                        editor.setSelections(saveViewState.selections)
+                        saveViewState = null
+                    }
+                })
+        }
 
         editor.getModel().onDidChangeContent(_event => {
             let src = get_src()
