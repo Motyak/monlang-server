@@ -83,16 +83,18 @@
     }
 
     const addLinksInConsole = () => {
-        const asLink = (filename, line, col) => {
+        const literalStrAsRegex = str => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+
+        const asLink = (line, col) => {
             return `<span onclick="jump_to(${line}, ${col})" `
                 + `class="text-blue-600 cursor-pointer underline hover:text-blue-800 hover:no-underline"`
-                + `>${filename}:${line}:${col}</span>`
+                + `>${SRCNAME}:${line}:${col}</span>`
         }
 
         $("#prog_out").html((_index, html) => {
             return html.replace(
-                /\b(src\.ml):([1-9][0-9]*):([1-9][0-9]*)\b/g,
-                (_match, filename, line, col) => asLink(filename, line, col)
+                new RegExp(`\\b${literalStrAsRegex(SRCNAME)}:([1-9][0-9]*):([1-9][0-9]*)\\b`, "g"),
+                (_match, line, col) => asLink(line, col)
             )
         })
     }
