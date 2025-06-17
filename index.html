@@ -461,7 +461,7 @@
                     let tr = event.currentTarget
                     let token = get_token(tr)
 
-                    if (token == null || token["is_malformed"]) {
+                    if (token == null) {
                         /* restore view state */
                         if (saveViewState != null) {
                             editor.setPosition(saveViewState.position)
@@ -483,13 +483,20 @@
                         }
                     }
 
-                    editor.setSelection({
-                        endColumn: token["end"]["column"],
-                        endLineNumber: token["end"]["line"],
-                        startColumn: token["start"]["column"],
-                        startLineNumber: token["start"]["line"]
-                    })
-
+                    if (token["is_malformed"]) {
+                        editor.setPosition({
+                            lineNumber: token["start"]["line"],
+                            column: token["start"]["column"]
+                        })
+                    }
+                    else {
+                        editor.setSelection({
+                            endColumn: token["end"]["column"],
+                            endLineNumber: token["end"]["line"],
+                            startColumn: token["start"]["column"],
+                            startLineNumber: token["start"]["line"]
+                        })
+                    }
                     editor.revealLineInCenter(token["start"]["line"])
                     editor.focus()
                 })
