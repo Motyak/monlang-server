@@ -453,6 +453,7 @@
 
         {
             let saveViewState = null
+            let lastCursorPosition = editor.getPosition()
             $("#LV1_tree table, #LV2_tree table")
                 .on("click", "tr", event => {
                     editor.focus() // to keep the selection blue
@@ -495,19 +496,11 @@
                                 column: position["column"]
                             })
                             editor.revealLineInCenter(position["line"])
-                        }
-                        else if ($(tr).prev().text() !== "") {
-                            let prev_token = get_prev_token(tr)
-                            let position = prev_token["end"]
-                            editor.setPosition({
-                                lineNumber: position["line"],
-                                column: position["column"]
-                            })
-                            editor.revealLineInCenter(position["line"])
+                            lastCursorPosition = editor.getPosition()
                         }
                         else {
-                            editor.setPosition({lineNumber: 1, column: 1})
-                            editor.revealLineInCenter(1)
+                            editor.setPosition(lastCursorPosition)
+                            editor.revealLineInCenter(lastCursorPosition.lineNumber)
                         }
                         return
                     }
@@ -527,6 +520,7 @@
                         })
                     }
                     editor.revealLineInCenter(token["start"]["line"])
+                    lastCursorPosition = editor.getPosition()
                 })
                 .on("mouseleave", event => {
                     /* restore view state */
