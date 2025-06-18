@@ -115,6 +115,16 @@
         return g_resObj["out"][`${LVx}.tokens.json`]["list"][token_id]
     }
 
+    // returns the last non-null token, if any, or null
+    const get_prev_token = tr => {
+        let token = get_token(tr)
+        while (token == null && $(tr).prev().text() !== "") {
+            tr = $(tr).prev()
+            token = get_token(tr)
+        }
+        return token
+    }
+
     // get indentation of an AST node (table <tr> or .ast.txt line)
     // should NOT be used on a <pre> text()
     const get_indent = arg => {
@@ -487,7 +497,7 @@
                             editor.revealLineInCenter(position["line"])
                         }
                         else if ($(tr).prev().text() !== "") {
-                            let prev_token = get_token($(tr).prev())
+                            let prev_token = get_prev_token(tr)
                             let position = prev_token["end"]
                             editor.setPosition({
                                 lineNumber: position["line"],
@@ -496,14 +506,8 @@
                             editor.revealLineInCenter(position["line"])
                         }
                         else {
-                            /* restore view state */
-                            if (saveViewState != null) {
-                                editor.setPosition(saveViewState.position)
-                                editor.setScrollTop(saveViewState.scrollTop)
-                                editor.setScrollLeft(saveViewState.scrollLeft)
-                                editor.setSelections(saveViewState.selections)
-                                saveViewState = null
-                            }
+                            editor.setPosition({lineNumber: 1, column: 1})
+                            editor.revealLineInCenter(1)
                         }
                         return
                     }
