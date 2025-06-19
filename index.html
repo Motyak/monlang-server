@@ -9,6 +9,8 @@
 `min-h-0` => to prevent `flex-1 h-full` from expanding beyond its parent (viewport)
 -->
 
+<div class="invisible tooltip absolute z-10 text-white bg-black bg-opacity-80 border rounded py-0.5 px-0.5 text-xs">Tooltip text</div>
+
 <div id="globalpanel" class="flex flew-row w-screen h-screen font-mono">
     <div id="sidepanel" class="lg:block hidden flex-none w-1/5 h-full border-r-2 border-gray-300 text-sm">
         <div id="LV1_panel" class="flex flex-col flex-1 w-full h-1/2">
@@ -99,6 +101,29 @@
         })
     }
 
+    const fetchErrDesc = (LVx, errFmt, onSuccess) => {
+        const onGETSuccess = LVx_ERR_txt => {
+            let LVx_ERR_txt_lines = LVx_ERR_txt.split("\n")
+            for (let i = 0; i < LVx_ERR_txt_lines.length; ++i) {
+                let curLine = LVx_ERR_txt_lines[i]
+                let index = curLine.indexOf(" ")
+                let curErrFmt = curLine.slice(0, index)
+                let curErrDesc = curLine.slice(index + 1)
+                if (curErrFmt === errFmt) {
+                    onSuccess(curErrDesc)
+                    return
+                }
+            }
+            console.error(`Error description for \`${errFmt}\` was not found in \`${LVx_ERR_txt}\``)
+        }
+
+        $.get({
+            url: `${LVx}.ERR.txt`,
+            success: onGETSuccess,
+            error: console.error
+        })
+    }
+
     // get associated token from tr index and parent
     const get_token = tr => {
         let LVx = ""
@@ -113,16 +138,6 @@
         let tr_index = Number($(tr).attr("name"))
         let token_id = g_to_token_id[LVx][tr_index]
         return g_resObj["out"][`${LVx}.tokens.json`]["list"][token_id]
-    }
-
-    // returns the last non-null token, if any, or null
-    const get_prev_token = tr => {
-        let token = get_token(tr)
-        while (token == null && $(tr).prev().text() !== "") {
-            tr = $(tr).prev()
-            token = get_token(tr)
-        }
-        return token
     }
 
     // get indentation of an AST node (table <tr> or .ast.txt line)
@@ -451,6 +466,13 @@
             }
         })
 
+        $("#globalpanel").on("mousemove", event => {
+            $(".tooltip").css({
+                top: event.clientY + 10,
+                left: event.clientX + 10
+            })
+        })
+
         {
             let saveViewState = null
             let lastCursorPosition = editor.getPosition()
@@ -485,30 +507,41 @@
                     }
 
                     if (token == null) {
-                        if ($(tr).text().match(/ERR-\d\d\d/)) {
-                            let position = (
-                                g_resObj["out"]["LV1.tokens.json"]["traceback"][0]
-                                ??
-                                g_resObj["out"]["LV2.tokens.json"]["traceback"][0]
-                            )["err_start"]
+                        let match = $(tr).text().match(/(ERR-\d\d\d)/)
+                        if (match) {
+                            let errFmt = match[1]
+                            let LVx = g_resObj["out"]["LV1.tokens.json"]["traceback"][0] !== undefined? "LV1" : "LV2"
+                            let position = g_resObj["out"][`${LVx}.tokens.json`]["traceback"][0]["err_start"]
                             editor.setPosition({
                                 lineNumber: position["line"],
                                 column: position["column"]
                             })
                             editor.revealLineInCenter(position["line"])
                             lastCursorPosition = editor.getPosition()
+                            fetchErrDesc(LVx, errFmt, errDesc => {
+                                $(".tooltip")
+                                    .text(errDesc)
+                                    .removeClass("invisible")
+                            })
                         }
                         else {
                             editor.setPosition(lastCursorPosition)
                             editor.revealLineInCenter(lastCursorPosition.lineNumber)
+                            $(".tooltip").addClass("invisible")
                         }
                         return
                     }
 
                     if (token["is_malformed"]) {
+                        let LVx = g_resObj["out"]["LV1.tokens.json"]["traceback"][0] !== undefined? "LV1" : "LV2"
                         editor.setPosition({
                             lineNumber: token["start"]["line"],
                             column: token["start"]["column"]
+                        })
+                        fetchErrDesc(LVx, token["err_fmt"], errDesc => {
+                            $(".tooltip")
+                                .text(errDesc)
+                                .removeClass("invisible")
                         })
                     }
                     else {
@@ -518,6 +551,7 @@
                             startColumn: token["start"]["column"],
                             startLineNumber: token["start"]["line"]
                         })
+                        $(".tooltip").addClass("invisible")
                     }
                     editor.revealLineInCenter(token["start"]["line"])
                     lastCursorPosition = editor.getPosition()
@@ -531,6 +565,8 @@
                         editor.setSelections(saveViewState.selections)
                         saveViewState = null
                     }
+
+                    $(".tooltip").addClass("invisible")
                 })
         }
 

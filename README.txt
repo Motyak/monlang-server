@@ -16,6 +16,10 @@ curl -sS http://127.0.0.1:55555 -F 'src=@examples/factorial.ml' -F 'srcpath=exam
 
 ---
 
+# GET ERR files
+curl -sS http://127.0.0.1:55555/LV1.ERR.txt
+curl -sS http://127.0.0.1:55555/LV2.ERR.txt
+
 # GET out/ files (without re-executing)
 curl -sS http://127.0.0.1:55555/out/console.txt
 curl -sS http://127.0.0.1:55555/out/LV1.ast.txt
