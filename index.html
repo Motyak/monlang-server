@@ -31,7 +31,7 @@
     <div id="mainpanel" class="flex flex-col flex-1 w-full h-full min-w-0">
         <div id="editorpanel" class="flex-1 w-full h-full min-h-0"></div>
         <div id="consolepanel" class="flex flex-col w-full h-1/3 border-t-2 border-gray-300">
-            <pre id="prog_out" class="flex-1 overflow-y-auto">&lt;prog_out&gt;</pre>
+            <pre id="prog_out" class="flex-1 overflow-y-auto pb-8">&lt;prog_out&gt;</pre>
             <p id="prog_status" class="truncate border-t border-gray-400">&lt;prog_status&gt;</p>
         </div>
     </div>
@@ -84,6 +84,25 @@
         editor.focus()
     }
 
+    const show_tooltip = (msg = null, event = null) => {
+        if (msg != null) {
+            $(".tooltip").text(msg)
+        }
+        if (event != null) {
+            $(".tooltip").css({
+                top: event.clientY + 10,
+                left: event.clientX + 10
+            })
+        }
+        $(".tooltip").removeClass("invisible")
+    }
+
+    const hide_tooltip = () => {
+        $(".tooltip")
+            .addClass("invisible")
+            .css({top: 0, left: 0})
+    }
+
     const addLinksInConsole = () => {
         const literalStrAsRegex = str => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
 
@@ -101,7 +120,22 @@
         })
     }
 
-    const fetchErrDesc = (LVx, errFmt, onSuccess) => {
+    const addHintsInConsole = () => {
+        const asHint = errFmt => {
+            return `<span onmouseenter="fetchErrDesc('${errFmt}', errDesc => show_tooltip(errDesc, event))"`
+                + ` onmouseleave="hide_tooltip()" class="cursor-help underline"`
+                + ` style="text-decoration-style: dotted">${errFmt}</span>`
+        }
+
+        $("#prog_out").html((_index, html) => {
+            return html.replace(
+                /ERR-\d\d\d/g,
+                (errFmt) => asHint(errFmt)
+            )
+        })
+    }
+
+    const fetchErrDesc = (errFmt, onSuccess) => {
         const onGETSuccess = LVx_ERR_txt => {
             let LVx_ERR_txt_lines = LVx_ERR_txt.split("\n")
             for (let i = 0; i < LVx_ERR_txt_lines.length; ++i) {
@@ -117,6 +151,7 @@
             console.error(`Error description for \`${errFmt}\` was not found in \`${LVx_ERR_txt}\``)
         }
 
+        let LVx = g_resObj["out"]["LV1.tokens.json"]["traceback"][0] !== undefined? "LV1" : "LV2"
         $.get({
             url: `${LVx}.ERR.txt`,
             success: onGETSuccess,
@@ -366,6 +401,7 @@
             $("#prog_status").hide()
         }
         addLinksInConsole()
+        addHintsInConsole()
         $("#consolepanel").show()
 
         /* set side panel */
@@ -467,10 +503,12 @@
         })
 
         $("#globalpanel").on("mousemove", event => {
-            $(".tooltip").css({
-                top: event.clientY + 10,
-                left: event.clientX + 10
-            })
+            if (!$(".tooltip").hasClass("invisible")) {
+                $(".tooltip").css({
+                    top: event.clientY + 10,
+                    left: event.clientX + 10
+                })
+            }
         })
 
         {
@@ -518,27 +556,22 @@
                             })
                             editor.revealLineInCenter(position["line"])
                             lastCursorPosition = editor.getPosition()
-                            fetchErrDesc(LVx, errFmt, errDesc => {
-                                $(".tooltip")
-                                    .text(errDesc)
-                                    .removeClass("invisible")
-                            })
+                            fetchErrDesc(errFmt, show_toolbar)
                         }
                         else {
                             editor.setPosition(lastCursorPosition)
                             editor.revealLineInCenter(lastCursorPosition.lineNumber)
-                            $(".tooltip").addClass("invisible")
+                            hide_toolbar()
                         }
                         return
                     }
 
                     if (token["is_malformed"]) {
-                        let LVx = g_resObj["out"]["LV1.tokens.json"]["traceback"][0] !== undefined? "LV1" : "LV2"
                         editor.setPosition({
                             lineNumber: token["start"]["line"],
                             column: token["start"]["column"]
                         })
-                        fetchErrDesc(LVx, token["err_fmt"], errDesc => {
+                        fetchErrDesc(token["err_fmt"], errDesc => {
                             $(".tooltip")
                                 .text(errDesc)
                                 .removeClass("invisible")
