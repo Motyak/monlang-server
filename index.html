@@ -4,6 +4,9 @@
 
 <link href="https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min/vs/editor/editor.main.css" rel="stylesheet">
 
+<!-- prevent sending query parameters in requests referrer header -->
+<meta name="referrer" content="origin" />
+
 <!--
 `min-w-0` => to prevent `flex-1 w-full` from expanding beyond its parent (viewport)
 `min-h-0` => to prevent `flex-1 h-full` from expanding beyond its parent (viewport)
@@ -556,7 +559,7 @@
                             })
                             editor.revealLineInCenter(position["line"])
                             lastCursorPosition = editor.getPosition()
-                            fetchErrDesc(errFmt, show_toolbar)
+                            fetchErrDesc(errFmt, show_tooltip)
                         }
                         else {
                             editor.setPosition(lastCursorPosition)
