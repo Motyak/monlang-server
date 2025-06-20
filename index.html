@@ -453,6 +453,7 @@
             }
 
             /* update DOM */
+            hide_tooltip()
             $("#LV1_tree table").html(newRows["LV1"])
             $("#LV2_tree table").html(newRows["LV2"])
         }, 16 /*0 makes the UI less responsive*/)
@@ -566,7 +567,7 @@
                         else {
                             editor.setPosition(lastCursorPosition)
                             editor.revealLineInCenter(lastCursorPosition.lineNumber)
-                            hide_toolbar()
+                            hide_tooltip()
                         }
                         return
                     }
