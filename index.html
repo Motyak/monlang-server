@@ -18,16 +18,16 @@
 
 <div id="globalpanel" class="flex flew-row w-screen h-screen font-mono">
     <div id="sidepanel" class="lg:block hidden flex-none w-1/5 h-full border-r-2 border-gray-300 select-none text-sm">
-        <div id="LV1_panel" class="flex flex-col flex-1 w-full h-1/2">
-            <h1 class="font-bold text-center border-t border-l border-gray-400">LV1 SYNTAX TREE</h1>
-            <div id="LV1_tree" class="h-full overflow-x-auto overflow-y-auto border-t border-gray-200">
+        <div id="syntaxtreepanel" class="flex flex-col flex-1 w-full h-1/2">
+            <h1 class="font-bold text-center border-t border-l border-gray-400">SYNTAX TREE</h1>
+            <div id="LVx_tree" class="h-full overflow-x-auto overflow-y-auto border-t border-gray-200">
                 <table class="w-full" style="margin-bottom: 45vh;">
                 </table>
             </div>
         </div>
-        <div id="LV2_panel" class="flex flex-col flex-1 w-full h-1/2">
-            <h1 class="font-bold text-center border-t border-l border-gray-400">LV2 SYNTAX TREE</h1>
-            <div id="LV2_tree" class="h-full overflow-x-auto overflow-y-auto border-t border-gray-200">
+        <div id="symbolpanel" class="flex flex-col flex-1 w-full h-1/2">
+            <h1 class="font-bold text-center border-t border-l border-gray-400">SYMBOL LIST</h1>
+            <div id="symbol_list" class="h-full overflow-x-auto overflow-y-auto border-t border-gray-200">
                 <table class="w-full" style="margin-bottom: 45vh;">
                 </table>
             </div>
@@ -72,9 +72,11 @@
 </script>
 
 <script>
+    let g_cursorInSymbolPanel = false
     let g_lastExecutedSrc = null
     let g_autoExpandTrees = false
     let g_resObj
+    let g_symbolTokenList = []
     let g_to_token_id = {"LV1": [], "LV2": []}
     let g_to_err_desc = {"LV1": {}, "LV2": {}}
 
@@ -445,10 +447,45 @@
                 return 0
             }
             symbolList.sort((a, b) => compareSymbols(a[0], b[0]))
-
-            console.log(symbolList) // TODO: update DOM accordingly
+            console.log(symbolList)
         }
 
+        /* set symbolpanel and construct symbol token list */
+        {
+            let newRows = []
+            let i = 0 // symbol token index
+            symbolList.forEach(symbol => {
+                let name = symbol[0]
+                let tokens = symbol[1]
+                if (tokens.length > 1) {
+                    let newRow = `<tr class="cursor-pointer hover:bg-gray-100 bg-gray-200">`
+                        + `<td><pre class="text-xs">`
+                        + `▸ ${name}`
+                        + `</pre></td></tr>`
+                    newRows.push(newRow)
+                    for (let z = 0; z < tokens.length; ++z) {
+                        newRow = `<tr name="${i}" class="hidden hover:bg-gray-100">`
+                            + `<td><pre class="text-xs">`
+                            + `    ${name} #${z + 1}`
+                            + `</pre></td></tr>`
+                        newRows.push(newRow)
+                        g_symbolTokenList[i] = tokens[z]
+                        i += 1
+                    }
+                }
+                else {
+                    let newRow = `<tr name="${i}" class="hover:bg-gray-100">`
+                        + `<td><pre class="text-xs">`
+                        + `  ${name}`
+                        + `</pre></td></tr>`
+                    newRows.push(newRow)
+                    g_symbolTokenList[i] = tokens[0]
+                    i += 1
+                }
+            })
+
+            $("#symbol_list table").html(newRows)
+        }
 
         /* set console panel */
         if (g_resObj["prog"] === "interpreter") {
@@ -466,7 +503,7 @@
         addHintsInConsole()
         $("#consolepanel").show()
 
-        /* set side panel */
+        /* set syntaxtree panel */
         setTimeout(() => {
             let newRows = {"LV1": [], "LV2": []}
 
@@ -511,8 +548,8 @@
 
             /* update DOM */
             hide_tooltip()
-            $("#LV1_tree table").html(newRows["LV1"])
-            $("#LV2_tree table").html(newRows["LV2"])
+            $("#LVx_tree table").html(newRows["LV1"])
+            // $("#LV2_tree table").html(newRows["LV2"])
         }, 16 /*0 makes the UI less responsive*/)
     }
 
@@ -546,6 +583,12 @@
 
     $(document).ready(() => {
         $(document).keydown(event => {
+            if (event.ctrlKey && g_cursorInSymbolPanel) {
+                $("#symbol_list tr")
+                    .filter((_index, element) => $(element).attr("name") !== undefined)
+                    .addClass("underline cursor-pointer")
+            }
+
             if (event.ctrlKey && event.key === "s") {
                 event.preventDefault()
                 let src = get_src()
@@ -561,7 +604,8 @@
 
             if (event.ctrlKey && event.key === "b") {
                 event.preventDefault()
-                $("#LV1_panel, #LV2_panel").toggle()
+                // $("#LV1_panel, #LV2_panel").toggle()
+                $("#syntaxtreepanel, #symbolpanel").toggle()
             }
 
             // Firefox adds extra whitespaces to the document so..
@@ -577,6 +621,15 @@
             }
         })
 
+        $(document).keyup(event => {
+            // event.ctrlKey is not reliable for keyup
+            if (event.key === "Control" && g_cursorInSymbolPanel) {
+                $("#symbol_list tr")
+                    .filter((_index, element) => $(element).attr("name") !== undefined)
+                    .removeClass("underline cursor-pointer")
+            }
+        })
+
         $("#globalpanel").on("mousemove", event => {
             if (!$("#tooltip").hasClass("invisible")) {
                 $("#tooltip").css({
@@ -586,10 +639,14 @@
             }
         })
 
+        $("#symbolpanel").mouseenter(_event => g_cursorInSymbolPanel = true)
+        $("#symbolpanel").mouseleave(_event => g_cursorInSymbolPanel = false)
+
         {
             let saveViewState = null
             let lastCursorPosition = editor.getPosition()
-            $("#LV1_tree table, #LV2_tree table")
+            // $("#LV1_tree table, #LV2_tree table")
+            $("#LVx_tree table")
                 .on("click", "tr", event => {
                     editor.focus() // to keep the selection blue
                     if (event.ctrlKey) {
@@ -676,6 +733,35 @@
                     $("#tooltip").addClass("invisible")
                 })
         }
+
+        $("#symbol_list table").on("click", "tr", event => {
+            let tr = event.currentTarget
+            if ($(tr).attr("name") === undefined) {
+                let tr_pre = $(tr).find("pre:first")
+                let tr_pre_text = tr_pre.text()
+                if (tr_pre_text.match(/▸/)) {
+                    $(tr_pre).text(tr_pre_text.replace(/▸/, "▾"))
+                    $(tr)
+                        .removeClass("bg-gray-200")
+                        .nextUntil((_index, element) => get_indent(element) === get_indent(tr))
+                        .removeClass("hidden")
+                }
+                else if (tr_pre_text.match(/▾/)) {
+                    $(tr_pre).text(tr_pre_text.replace(/▾/, "▸"))
+                    $(tr)
+                        .addClass("bg-gray-200")
+                        .nextUntil((_index, element) => get_indent(element) === get_indent(tr))
+                        .addClass("hidden")
+                }
+            }
+            else {
+                if (event.ctrlKey) {
+                    let symbolTokenIndex = Number($(tr).attr("name"))
+                    let token = g_symbolTokenList[symbolTokenIndex]
+                    jump_to(token["start"]["line"], token["start"]["column"])
+                }
+            }
+        })
 
         editor.getModel().onDidChangeContent(_event => {
             let src = get_src()
