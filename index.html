@@ -42,13 +42,6 @@
     </div>
 </div>
 
-<style>
-    /* prevent ctrl+a from grapping ARIA alerts text */
-    .monaco-aria-container {
-        user-select: none;
-    }
-</style>
-
 <script>
     let queryParams = new URLSearchParams(window.location.search)
     let editor // forward declaration
@@ -569,6 +562,18 @@
             if (event.ctrlKey && event.key === "b") {
                 event.preventDefault()
                 $("#LV1_panel, #LV2_panel").toggle()
+            }
+
+            // Firefox adds extra whitespaces to the document so..
+            // ..we overload ctrl+a behavior */
+            if (event.ctrlKey && event.key === "a") {
+                event.preventDefault()
+                let text = $("#prog_out").text()
+                let range = document.createRange()
+                range.selectNode($("#prog_out")[0])
+                let selection = document.getSelection()
+                selection.removeAllRanges()
+                selection.addRange(range)
             }
         })
 
