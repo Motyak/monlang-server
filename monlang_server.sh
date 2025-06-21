@@ -13,7 +13,7 @@ cd "$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
     nc -z 127.0.0.1 55555 && {
         pid=$(lsof -i :55555 -t)
         >&2 echo "server is already running on pid ${pid}"
-        exit 1
+        exit 0
     }
     tmux new-session -ds monlang php -S 127.0.0.1:55555
 }
