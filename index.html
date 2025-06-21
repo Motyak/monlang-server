@@ -74,8 +74,9 @@
 <script>
     let g_lastExecutedSrc = ""
     let g_autoExpandTrees = false
-    let g_resObj = {}
-    let g_to_token_id = {"LV1": [], "LV2": []} ;//
+    let g_resObj
+    let g_to_token_id = {"LV1": [], "LV2": []}
+    let g_to_err_desc = {"LV1": {}, "LV2": {}}
 
     /* enumerate node expansion methods */
     const SHOW_HIDDEN = Symbol() // don't fetch anything, show hidden items
@@ -127,7 +128,7 @@
 
     const addHintsInConsole = () => {
         const asHint = errFmt => {
-            return `<span onmouseenter="fetchErrDesc('${errFmt}', errDesc => show_tooltip(errDesc, event))"`
+            return `<span onmouseenter="show_tooltip(get_err_desc('${errFmt}'), event)"`
                 + ` onmouseleave="hide_tooltip()" class="cursor-help underline"`
                 + ` style="text-decoration-style: dotted">${errFmt}</span>`
         }
@@ -140,28 +141,19 @@
         })
     }
 
-    const fetchErrDesc = (errFmt, onSuccess) => {
-        const onGETSuccess = LVx_ERR_txt => {
-            let LVx_ERR_txt_lines = LVx_ERR_txt.split("\n")
-            for (let i = 0; i < LVx_ERR_txt_lines.length; ++i) {
-                let curLine = LVx_ERR_txt_lines[i]
-                let index = curLine.indexOf(" ")
-                let curErrFmt = curLine.slice(0, index)
-                let curErrDesc = curLine.slice(index + 1)
-                if (curErrFmt === errFmt) {
-                    onSuccess(curErrDesc)
-                    return
-                }
-            }
-            console.error(`Error description for \`${errFmt}\` was not found in \`${LVx_ERR_txt}\``)
-        }
-
-        let LVx = g_resObj["out"]["LV1.tokens.json"]["traceback"][0] !== undefined? "LV1" : "LV2"
+    const fetchFile = (filepath, onSuccess) => {
         $.get({
-            url: `${LVx}.ERR.txt`,
-            success: onGETSuccess,
+            url: filepath,
+            success: onSuccess,
             error: console.error
         })
+    }
+
+    const get_err_desc = (err_fmt, LVx = null) => {
+        if (LVx == null) {
+            LVx = g_resObj["out"]["LV1.tokens.json"]["traceback"][0] !== undefined? "LV1" : "LV2"
+        }
+        return g_to_err_desc[LVx][err_fmt]
     }
 
     // get associated token from tr index and parent
@@ -230,11 +222,7 @@
                 LVx_ast_txt = "LV2.ast.txt"
             }
 
-            $.get({
-                url: `out/${LVx_ast_txt}`,
-                success: onSuccess,
-                error: console.error
-            })
+            fetchFile(`out/${LVx_ast_txt}`, onSuccess)
         }
 
         const collapse = tr => {
@@ -356,7 +344,7 @@
         g_resObj = res
         console.log(g_resObj) ; //
 
-        /* construct `tr index to token id` list */
+        /* construct `tr index to token id` map */
         ["LV1", "LV2"].forEach(LVx => {
             let LVx_ast_txt = g_resObj["out"][`${LVx}.ast.txt`]
             let LVx_lines = LVx_ast_txt.trimEnd().split("\n")
@@ -391,7 +379,19 @@
                 g_to_token_id[LVx][i] = j
                 j += 1
             }
-        })
+        }) ;//
+
+        /* construct `errFmt to errDesc` map */
+        ["LV1", "LV2"].forEach(LVx => fetchFile(`${LVx}.ERR.txt`, LVx_ERR_txt => {
+            let LVx_ERR_txt_lines = LVx_ERR_txt.split("\n")
+            for (let i = 0; i < LVx_ERR_txt_lines.length; ++i) {
+                let curLine = LVx_ERR_txt_lines[i]
+                let index = curLine.indexOf(" ")
+                let curErrFmt = curLine.slice(0, index)
+                let curErrDesc = curLine.slice(index + 1)
+                g_to_err_desc[LVx][curErrFmt] = curErrDesc
+            }
+        }))
 
         /* construct symbol list */
         let symbolList
@@ -619,7 +619,7 @@
                             })
                             editor.revealLineInCenter(position["line"])
                             lastCursorPosition = editor.getPosition()
-                            fetchErrDesc(errFmt, show_tooltip)
+                            show_tooltip(get_err_desc(errFmt))
                         }
                         else {
                             editor.setPosition(lastCursorPosition)
@@ -634,11 +634,10 @@
                             lineNumber: token["start"]["line"],
                             column: token["start"]["column"]
                         })
-                        fetchErrDesc(token["err_fmt"], errDesc => {
-                            $(".tooltip")
-                                .text(errDesc)
+
+                        $(".tooltip")
+                                .text(get_err_desc(token["err_fmt"]))
                                 .removeClass("invisible")
-                        })
                     }
                     else {
                         editor.setSelection({
