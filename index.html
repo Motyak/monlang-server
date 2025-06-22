@@ -187,7 +187,7 @@
             || get_indent(LVx_lines[i + 1]) <= get_indent(LVx_lines[i])
         )? "  " : "▾ "
         // /!\ the "prefix" is set after the indentation
-        let prefixedLine = LVx_lines[i].replace(/(\S)/, (_match, group) => prefix + group)
+        let prefixedLine = LVx_lines[i].replace(/(\S)/, (begin) => prefix + begin)
         return `<tr name="${i}"`
             + ` class="cursor-pointer hover:bg-gray-100">`
             + `<td><pre class="text-xs">`
@@ -201,7 +201,7 @@
             || get_indent(LVx_lines[i + 1]) <= get_indent(LVx_lines[i])
         )? "  " : "▸ "
         // /!\ the "prefix" is set after the indentation
-        let prefixedLine = LVx_lines[i].replace(/(\S)/, (_match, group) => prefix + group)
+        let prefixedLine = LVx_lines[i].replace(/(\S)/, (begin) => prefix + begin)
         return `<tr name="${i}"`
                 + ` class="cursor-pointer hover:bg-gray-100`
                 + (prefix === "▸ "? ` bg-gray-200` : ``) + `">`
@@ -611,15 +611,13 @@
 
             if (event.ctrlKey && event.key === "b") {
                 event.preventDefault()
-                // $("#LV1_panel, #LV2_panel").toggle()
                 $("#syntaxtreepanel, #symbolpanel").toggle()
             }
 
             // Firefox adds extra whitespaces to the document so..
-            // ..we overload ctrl+a behavior */
+            // ..we override ctrl+a behavior */
             if (event.ctrlKey && event.key === "a") {
                 event.preventDefault()
-                let text = $("#prog_out").text()
                 let range = document.createRange()
                 range.selectNode($("#prog_out")[0])
                 let selection = document.getSelection()
@@ -628,7 +626,7 @@
             }
         })
 
-        $("#globalpanel").on("mousemove", event => {
+        $("#globalpanel").mousemove(event => {
             if (!$("#tooltip").hasClass("invisible")) {
                 $("#tooltip").css({
                     top: event.clientY + 10,
@@ -637,10 +635,29 @@
             }
         })
 
+        $("#syntaxtreepanel").on("click", "button", event => {
+            let btn = event.currentTarget
+            if ($(btn).hasClass("bg-gray-100")) {
+                return
+            }
+
+            let clickedLVx = $(btn).text()
+            let otherLVx = clickedLVx === "LV1"? "LV2" : "LV1"
+            $(`#${clickedLVx}_btn`)
+                .removeClass("opacity-50")
+                .addClass("font-bold bg-gray-100")
+            $(`#${otherLVx}_btn`)
+                .removeClass("font-bold bg-gray-100")
+                .addClass("opacity-50")
+            $("#LVx_tree").attr("name", clickedLVx)
+            // save detached active table before loading other table
+            g_syntaxTreeHtml[otherLVx] = $("#LVx_tree table tr").detach()
+            $("#LVx_tree table").html(g_syntaxTreeHtml[clickedLVx])
+        })
+
         {
             let saveViewState = null
             let lastCursorPosition = editor.getPosition()
-            // $("#LV1_tree table, #LV2_tree table")
             $("#LVx_tree table")
                 .on("click", "tr", event => {
                     editor.focus() // to keep the selection blue
@@ -715,7 +732,7 @@
                     editor.revealLineInCenter(token["start"]["line"])
                     lastCursorPosition = editor.getPosition()
                 })
-                .on("mouseleave", event => {
+                .mouseleave(event => {
                     /* restore view state */
                     if (saveViewState != null) {
                         editor.setPosition(saveViewState.position)
@@ -734,18 +751,19 @@
             if ($(tr).attr("name") === undefined) {
                 let tr_pre = $(tr).find("pre:first")
                 let tr_pre_text = tr_pre.text()
+                let tr_indent = get_indent(tr)
                 if (tr_pre_text.match(/▸/)) {
                     $(tr_pre).text(tr_pre_text.replace(/▸/, "▾"))
                     $(tr)
                         .removeClass("bg-gray-200")
-                        .nextUntil((_index, element) => get_indent(element) === get_indent(tr))
+                        .nextUntil((_index, element) => get_indent(element) === tr_indent)
                         .removeClass("hidden")
                 }
                 else if (tr_pre_text.match(/▾/)) {
                     $(tr_pre).text(tr_pre_text.replace(/▾/, "▸"))
                     $(tr)
                         .addClass("bg-gray-200")
-                        .nextUntil((_index, element) => get_indent(element) === get_indent(tr))
+                        .nextUntil((_index, element) => get_indent(element) === tr_indent)
                         .addClass("hidden")
                 }
             }
@@ -756,26 +774,6 @@
                     jump_to(token["start"]["line"], token["start"]["column"])
                 }
             }
-        })
-
-        $("#syntaxtreepanel").on("click", "button", event => {
-            let btn = event.currentTarget
-            if ($(btn).hasClass("bg-gray-100")) {
-                return
-            }
-
-            let clickedLVx = $(btn).text()
-            let otherLVx = clickedLVx === "LV1"? "LV2" : "LV1"
-            $(`#${clickedLVx}_btn`)
-                .removeClass("opacity-50")
-                .addClass("font-bold bg-gray-100")
-            $(`#${otherLVx}_btn`)
-                .removeClass("font-bold bg-gray-100")
-                .addClass("opacity-50")
-            $("#LVx_tree").attr("name", clickedLVx)
-            // save detached active table before loading other table
-            g_syntaxTreeHtml[otherLVx] = $("#LVx_tree table tr").detach()
-            $("#LVx_tree table").html(g_syntaxTreeHtml[clickedLVx])
         })
 
         editor.getModel().onDidChangeContent(_event => {
