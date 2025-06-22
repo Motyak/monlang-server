@@ -385,8 +385,8 @@
         }))
 
         /* construct symbol list */
-        let symbolList
-        {
+        let symbolList = []
+        if (g_resObj["prog"] === "interpreter") {
             let src = get_src()
             let symbolMap = {} // map associating symbol to array of tokens
 
