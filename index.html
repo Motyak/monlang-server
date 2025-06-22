@@ -211,11 +211,6 @@
     }
 
     const toggleSyntaxTreeNode = (tr, shouldExpandAll = g_autoExpandTrees) => {
-        const fetchAstFile = (tr, onSuccess) => {
-            let LVx = $(tr).closest("div").attr("name")
-            fetchFile(`out/${LVx}.ast.txt`, onSuccess)
-        }
-
         const collapse = tr => {
             let tr_pre = $(tr).find("pre:first")
             let tr_pre_text = tr_pre.text()
@@ -273,45 +268,45 @@
                     return
                 }
 
-                fetchAstFile(tr, LVx_ast_txt => {
-                    let newRows = []
-                    let LVx_lines = LVx_ast_txt.trimEnd().split("\n")
-                    for (let i = Number($(tr).attr("name")) + 1; i < LVx_lines.length; ++i) {
-                        if (get_indent(LVx_lines[i]) <= tr_indent) {
-                            break
-                        }
-                        if (get_indent(LVx_lines[i]) > tr_indent + 2) {
-                            continue
-                        }
-
-                        let newRow = htmlizeAsCollapsed(LVx_lines, i)
-                        newRows.push(newRow)
+                let LVx = $(tr).closest("div").attr("name")
+                let LVx_ast_txt = g_resObj["out"][`${LVx}.ast.txt`]
+                let newRows = []
+                let LVx_lines = LVx_ast_txt.trimEnd().split("\n")
+                for (let i = Number($(tr).attr("name")) + 1; i < LVx_lines.length; ++i) {
+                    if (get_indent(LVx_lines[i]) <= tr_indent) {
+                        break
+                    }
+                    if (get_indent(LVx_lines[i]) > tr_indent + 2) {
+                        continue
                     }
 
-                    $(tr).after(newRows)
-                })
+                    let newRow = htmlizeAsCollapsed(LVx_lines, i)
+                    newRows.push(newRow)
+                }
+
+                $(tr).after(newRows)
             }
             
             else if (expansionMethod === GET_ALL) {
                 let tr_indent = get_indent(tr)
-                fetchAstFile(tr, LVx_ast_txt => {
-                    let newRows = []
-                    let LVx_lines = LVx_ast_txt.trimEnd().split("\n")
-                    for (let i = Number($(tr).attr("name")) + 1; i < LVx_lines.length; ++i) {
-                        if (get_indent(LVx_lines[i]) <= tr_indent) {
-                            break
-                        }
-
-                        let newRow = htmlizeAsExpanded(LVx_lines, i)
-                        newRows.push(newRow)
+                let LVx = $(tr).closest("div").attr("name")
+                let LVx_ast_txt = g_resObj["out"][`${LVx}.ast.txt`]
+                let newRows = []
+                let LVx_lines = LVx_ast_txt.trimEnd().split("\n")
+                for (let i = Number($(tr).attr("name")) + 1; i < LVx_lines.length; ++i) {
+                    if (get_indent(LVx_lines[i]) <= tr_indent) {
+                        break
                     }
 
-                    $(tr)
-                        .nextUntil((_index, element) => get_indent(element) <= tr_indent)
-                        .remove()
-                        .end()
-                        .after(newRows)
-                })
+                    let newRow = htmlizeAsExpanded(LVx_lines, i)
+                    newRows.push(newRow)
+                }
+
+                $(tr)
+                    .nextUntil((_index, element) => get_indent(element) <= tr_indent)
+                    .remove()
+                    .end()
+                    .after(newRows)
             }
         }
 
