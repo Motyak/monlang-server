@@ -10,7 +10,7 @@ set -o errexit
 cd "$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 
 2>/dev/null tmux has-session -t monlang || {
-    nc -z 127.0.0.1 55555 && {
+    2>/dev/null nc -z 127.0.0.1 55555 && {
         pid=$(lsof -i :55555 -t)
         >&2 echo "server is already running on pid ${pid}"
         exit 0
