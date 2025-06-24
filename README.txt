@@ -2,7 +2,8 @@
 php -S 127.0.0.1:55555
 # the following config bypass file size limitation (otherwise 2M)
 php -S 127.0.0.1:55555 -c <(echo -e "upload_max_filesize=-1\npost_max_size=-1")
-# server is now available under http://127.0.0.1:55555
+# server is now available under http://127.0.0.1:55555 ..
+# ..you can also start from http://127.0.0.1:55555/examples
 
 ---
 
