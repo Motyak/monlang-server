@@ -127,7 +127,7 @@
 
         $("#prog_out").html((_index, html) => {
             return html.replace(
-                new RegExp(`\\b${literalStrAsRegex(SRCNAME)}:([1-9][0-9]*):([1-9][0-9]*)\\b`, "g"),
+                new RegExp(`(?:^|\W)${literalStrAsRegex(SRCNAME)}:([1-9][0-9]*):([1-9][0-9]*)\\b`, "gm"),
                 (_match, line, col) => asLink(line, col)
             )
         })
