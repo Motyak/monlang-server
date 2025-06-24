@@ -181,6 +181,13 @@
         return $(arg).find("pre:first").text().search(/[▾▸\s]\s[^▾▸\s]/)
     }
 
+    const escapeHtmlMetachars = str => {
+        return str
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+    }
+
     const htmlizeAsExpanded = (LVx_lines, i) => {
         let prefix = (
             i + 1 === LVx_lines.length
@@ -191,7 +198,7 @@
         return `<tr name="${i}"`
             + ` class="cursor-pointer hover:bg-gray-100">`
             + `<td><pre class="text-xs">`
-            + prefixedLine
+            + escapeHtmlMetachars(prefixedLine)
             + `</pre></td></tr>`
     }
 
@@ -206,7 +213,7 @@
                 + ` class="cursor-pointer hover:bg-gray-100`
                 + (prefix === "▸ "? ` bg-gray-200` : ``) + `">`
                 + `<td><pre class="text-xs">`
-                + prefixedLine
+                + escapeHtmlMetachars(prefixedLine)
                 + `</pre></td></tr>`
     }
 
@@ -443,13 +450,13 @@
                 if (tokens.length > 1) {
                     let newRow = `<tr class="cursor-pointer hover:bg-gray-100 bg-gray-200">`
                         + `<td><pre class="text-xs">`
-                        + `▸ ${name}`
+                        + `▸ ${escapeHtmlMetachars(name)}`
                         + `</pre></td></tr>`
                     newRows.push(newRow)
                     for (let z = 0; z < tokens.length; ++z) {
                         newRow = `<tr name="${i}" class="hidden cursor-pointer hover:bg-gray-100">`
                             + `<td><pre class="text-xs">`
-                            + `    ${name} #${z + 1}`
+                            + `    ${escapeHtmlMetachars(name)} #${z + 1}`
                             + `</pre></td></tr>`
                         newRows.push(newRow)
                         g_symbolTokenList[i] = tokens[z]
@@ -459,7 +466,7 @@
                 else {
                     let newRow = `<tr name="${i}" class="cursor-pointer hover:bg-gray-100">`
                         + `<td><pre class="text-xs">`
-                        + `  ${name}`
+                        + `  ${escapeHtmlMetachars(name)}`
                         + `</pre></td></tr>`
                     newRows.push(newRow)
                     g_symbolTokenList[i] = tokens[0]
