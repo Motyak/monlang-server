@@ -76,6 +76,7 @@
     const editor_conf = {
         automaticLayout: true,
         lineNumbersMinChars: 3,
+        occurrencesHighlight: "off",
         value: queryParams.get("src") ?? "",
     }
     editor = monaco.editor.create($("#editorpanel")[0], editor_conf)
@@ -135,8 +136,8 @@
 
         $("#prog_out").html((_index, html) => {
             return html.replace(
-                new RegExp(`(?:^|\W)${literalStrAsRegex(SRCNAME)}:([1-9][0-9]*):([1-9][0-9]*)\\b`, "gm"),
-                (_match, line, col) => asLink(line, col)
+                new RegExp(`(^|\\W)${literalStrAsRegex(SRCNAME)}:([1-9][0-9]*):([1-9][0-9]*)\\b`, "gm"),
+                (_match, prefix, line, col) => prefix + asLink(line, col)
             )
         })
     }
