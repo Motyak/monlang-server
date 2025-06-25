@@ -19,7 +19,14 @@
 <div id="globalpanel" class="flex flew-row w-screen h-screen font-mono">
     <div id="sidepanel" class="lg:block hidden flex-none w-1/5 h-full border-r-2 border-gray-300 select-none text-sm">
         <div id="syntaxtreepanel" class="flex flex-col flex-1 w-full h-1/2">
-            <h1 class="font-bold text-center border-t border-l border-gray-400">SYNTAX TREE</h1>
+            <h1 class="relative font-bold text-center border-t border-l border-gray-400">
+                <span>SYNTAX TREE</span>
+                <span id="options_btn" class="absolute right-0 mr-1 px-0.5 cursor-pointer rounded-full hover:bg-gray-100">🛠</span>
+                <div id="options_menu" class="invisible absolute z-10 right-0 bg-white border p-1 text-xs">
+                    <label class="block flex items-center mb-1">autoExpand<input type="checkbox" class="ml-2"></label>
+                    <label class="block flex items-center">peekEditor<input type="checkbox" checked class="ml-2"></label>
+                </div>
+            </h1>
             <div class="flex flex-row border border-gray-200">
                 <button id="LV1_btn" type="button" disabled class="flex-none w-1/2 opacity-50 cursor-not-allowed">LV1</button>
                 <div class="flex-none w-px bg-gray-200"></div>
@@ -79,6 +86,7 @@
 <script>
     let g_lastExecutedSrc = null
     let g_autoExpandTrees = false
+    let g_peekEditor = true
     let g_resObj
     let g_symbolTokenList = []
     let g_syntaxTreeHtml = {"LV1": "", "LV2": ""}
@@ -194,7 +202,7 @@
             || get_indent(LVx_lines[i + 1]) <= get_indent(LVx_lines[i])
         )? "  " : "▾ "
         // /!\ the "prefix" is set after the indentation
-        let prefixedLine = LVx_lines[i].replace(/(\S)/, (begin) => prefix + begin)
+        let prefixedLine = LVx_lines[i].replace(/\S/, begin => prefix + begin)
         return `<tr name="${i}"`
             + ` class="cursor-pointer hover:bg-gray-100">`
             + `<td><pre class="text-xs">`
@@ -208,7 +216,7 @@
             || get_indent(LVx_lines[i + 1]) <= get_indent(LVx_lines[i])
         )? "  " : "▸ "
         // /!\ the "prefix" is set after the indentation
-        let prefixedLine = LVx_lines[i].replace(/(\S)/, (begin) => prefix + begin)
+        let prefixedLine = LVx_lines[i].replace(/\S/, begin => prefix + begin)
         return `<tr name="${i}"`
                 + ` class="cursor-pointer hover:bg-gray-100`
                 + (prefix === "▸ "? ` bg-gray-200` : ``) + `">`
@@ -409,8 +417,8 @@
             symbolList = Object.entries(symbolMap)
 
             const compareSymbols = (a, b) => {
-                let alpha_a = a.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^A-Za-z0-9]/g, "")
-                let alpha_b = b.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^A-Za-z0-9]/g, "")
+                let alpha_a = a.normalize("NFD").replace(/[^A-Za-z0-9]/g, "").toLowerCase()
+                let alpha_b = b.normalize("NFD").replace(/[^A-Za-z0-9]/g, "").toLowerCase()
                 if (alpha_a < alpha_b) {
                     return -1
                 }
@@ -637,7 +645,31 @@
             }
         })
 
-        $("#syntaxtreepanel").on("click", "button", event => {
+        $("#options_btn").click(event => {
+            let btn = event.currentTarget
+            if ($(btn).hasClass("bg-gray-200")) {
+                $(btn).removeClass("bg-gray-200")
+                $("#options_menu").addClass("invisible")
+            }
+            else {
+                $(btn).addClass("bg-gray-200")
+                $("#options_menu").removeClass("invisible")
+            }
+        })
+
+        const setOption = checkbox => {
+            let option = $(checkbox).parent().text()
+            if (option === "autoExpand") {
+                g_autoExpandTrees = checkbox.checked
+            }
+            else if (option === "peekEditor") {
+                g_peekEditor = checkbox.checked
+            }
+        }
+        $("#options_menu :checkbox").each((_index, element) => setOption(element)) // at startup
+        $("#options_menu").change(":checkbox", event => setOption(event.target))
+
+        $("#LV1_btn, #LV2_btn").click(event => {
             let btn = event.currentTarget
             if ($(btn).hasClass("bg-gray-100")) {
                 return
@@ -694,6 +726,8 @@
                         let match = $(tr).text().match(/(ERR-\d\d\d)/)
                         if (match) {
                             let errFmt = match[1]
+                            show_tooltip(get_err_desc(errFmt))
+                            if (!g_peekEditor) return
                             let LVx = g_resObj["out"]["LV1.tokens.json"]["traceback"][0] !== undefined? "LV1" : "LV2"
                             let position = g_resObj["out"][`${LVx}.tokens.json`]["traceback"][0]["err_start"]
                             editor.setPosition({
@@ -702,34 +736,35 @@
                             })
                             editor.revealLineInCenter(position["line"])
                             lastCursorPosition = editor.getPosition()
-                            show_tooltip(get_err_desc(errFmt))
                         }
                         else {
+                            hide_tooltip()
+                            if (!g_peekEditor) return
                             editor.setPosition(lastCursorPosition)
                             editor.revealLineInCenter(lastCursorPosition.lineNumber)
-                            hide_tooltip()
                         }
                         return
                     }
 
                     if (token["is_malformed"]) {
+                        $("#tooltip")
+                                .text(get_err_desc(token["err_fmt"]))
+                                .removeClass("invisible")
+                        if (!g_peekEditor) return
                         editor.setPosition({
                             lineNumber: token["start"]["line"],
                             column: token["start"]["column"]
                         })
-
-                        $("#tooltip")
-                                .text(get_err_desc(token["err_fmt"]))
-                                .removeClass("invisible")
                     }
                     else {
+                        $("#tooltip").addClass("invisible")
+                        if (!g_peekEditor) return
                         editor.setSelection({
                             endColumn: token["end"]["column"],
                             endLineNumber: token["end"]["line"],
                             startColumn: token["start"]["column"],
                             startLineNumber: token["start"]["line"]
                         })
-                        $("#tooltip").addClass("invisible")
                     }
                     editor.revealLineInCenter(token["start"]["line"])
                     lastCursorPosition = editor.getPosition()
