@@ -9,5 +9,3 @@
     }
 ?>
 </ul>
-
-<link rel="icon" href="../favicon.png">
