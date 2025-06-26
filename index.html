@@ -14,7 +14,7 @@
 `min-h-0` => to prevent `flex-1 h-full` from expanding beyond its parent (viewport)
 -->
 
-<span id="tooltip" class="invisible absolute z-10 text-white bg-black bg-opacity-80 border rounded py-0.5 px-0.5 text-xs select-none">Tooltip text</span>
+<span id="tooltip" class="invisible absolute z-20 text-white bg-black bg-opacity-80 border rounded py-0.5 px-0.5 text-xs select-none">Tooltip text</span>
 
 <div id="globalpanel" class="flex flew-row w-screen h-screen font-mono">
     <div id="sidepanel" class="lg:block hidden flex-none w-1/5 h-full border-r-2 border-gray-300 select-none text-sm">
@@ -73,11 +73,39 @@
 <script type="module">
     import * as monaco from "https://esm.sh/monaco-editor@0.52.2?bundle"
 
+    monaco.languages.setLanguageConfiguration("plaintext", {
+        autoClosingPairs: [
+            {open: "(", close: ")"},
+            {open: "[", close: "]"},
+            {open: "{", close: "}"},
+            {open: '"', close: '"'},
+            {open: "```", close: "```"},
+        ],
+        folding: {
+            markers: {start: /^```/, end: /^```/},
+            offSide: true,
+        },
+        onEnterRules: [
+            {
+                action: {indentAction: 2},
+                afterText: /```/,
+                beforeText: /```/,
+            },
+        ],
+        surroundingPairs: [
+            {open: "(", close: ")"},
+            {open: "[", close: "]"},
+            {open: "{", close: "}"},
+            {open: '"', close: '"'},
+        ],
+    })
+
     const editor_conf = {
         automaticLayout: true,
         lineNumbersMinChars: 3,
         occurrencesHighlight: "off",
         value: queryParams.get("src") ?? "",
+        wordSeparators: "()[]{}:\"`,.#",
     }
     editor = monaco.editor.create($("#editorpanel")[0], editor_conf)
     editor.getModel().pushEOL(monaco.editor.EndOfLineSequence.LF)
