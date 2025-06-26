@@ -1,15 +1,18 @@
 <!doctype html>
 
-<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
-
-<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-
-<link href="https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min/vs/editor/editor.main.css" rel="stylesheet">
-
-<link rel="icon" href="favicon.png">
-
 <!-- prevent sending query parameters in requests referrer header -->
 <meta name="referrer" content="origin">
+
+<!-- <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script> -->
+ <script src="lib/jquery.min.js"></script>
+
+<!-- <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet"> -->
+ <link href="lib/tailwind.min.css" rel="stylesheet">
+
+<!-- <link href="https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min/vs/editor/editor.main.css" rel="stylesheet"> -->
+ <link href="lib/monaco-editor@0.52.2/editor.main.css" rel="stylesheet">
+
+<link rel="icon" href="favicon.png">
 
 <!--
 `min-w-0` => to prevent `flex-1 w-full` from expanding beyond its parent (viewport)
@@ -73,7 +76,8 @@
 </script>
 
 <script type="module">
-    import * as monaco from "https://esm.sh/monaco-editor@0.52.2?bundle"
+    // import * as monaco from "https://esm.sh/monaco-editor@0.52.2?bundle"
+    import * as monaco from "/lib/monaco-editor@0.52.2.js"
 
     const editor_conf = {
         automaticLayout: true,
