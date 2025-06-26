@@ -1,5 +1,6 @@
 
-import * as monaco from "https://esm.sh/monaco-editor@0.52.2?bundle"
+// import * as monaco from "https://esm.sh/monaco-editor@0.52.2?bundle"
+import * as monaco from "/lib/monaco-editor@0.52.2.js"
 
 export const create_monlang_editor = (domElement, value = "") => {
 
