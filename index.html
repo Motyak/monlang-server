@@ -434,7 +434,12 @@
             for (let i = 0; i < LV2_tokens_list.length; ++i) {
                 let token = LV2_tokens_list[i]
                 if (!token["is_malformed"] && token["name"] === "Symbol" && isAVarSymbol) {
-                    let symbolName = src.substring(token["start"]["i"], token["end"]["i"])
+                    let symbolName = editor.getModel().getValueInRange({
+                        startLineNumber: token["start"]["line"],
+                        startColumn: token["start"]["column"],
+                        endLineNumber: token["end"]["line"],
+                        endColumn: token["end"]["column"]
+                    })
                     if (!(symbolName in symbolMap)) {
                         symbolMap[symbolName] = []
                     }
