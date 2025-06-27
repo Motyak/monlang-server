@@ -5,6 +5,9 @@ php -S 127.0.0.1:55555 -c <(echo -e "upload_max_filesize=-1\npost_max_size=-1")
 # server is now available under http://127.0.0.1:55555 ..
 # ..you can also start from http://127.0.0.1:55555/examples
 
+# in order to support n concurrent connections (default is 1)
+PHP_CLI_SERVER_WORKERS=2 php -S 127.0.0.1:55555
+
 ---
 
 # POST file
@@ -48,6 +51,9 @@ curl -sS http://127.0.0.1:55555/out/traceback.txt
 # this attaches the terminal to existing or freshly-created..
 # ..tmux session dedicated for running monlang PHP server
 # (ctrl+b d to detach session again)
+#
+# you can also pass as argument the number of server workers
+# (for handling concurrent connections), default is 1
 
 # to run the scripts from anywhere, install them :
 ln -s "$(realpath open_monlang.sh)" ~/.local/bin/open_monlang

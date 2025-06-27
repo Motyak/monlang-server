@@ -15,7 +15,7 @@ set -o errexit
 cd "$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 
 2>/dev/null tmux has-session -t monlang || 2>/dev/null nc -z 127.0.0.1 55555 || {
-    tmux new-session -ds monlang php -S 127.0.0.1:55555
+    tmux new-session -ds monlang -e PHP_CLI_SERVER_WORKERS=2 php -S 127.0.0.1:55555
     {
         until 2>/dev/null nc -z 127.0.0.1 55555; do
             sleep 0.1

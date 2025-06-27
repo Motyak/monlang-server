@@ -116,6 +116,7 @@
     let g_lastExecutedSrc = null
     let g_autoExpandTrees = false
     let g_peekEditor = true
+    let g_srcExecutionInProgress = null
     let g_resObj
     let g_symbolTokenList = []
     let g_syntaxTreeHtml = {"LV1": "", "LV2": ""}
@@ -626,19 +627,38 @@
 
         const formData = new FormData()
         formData.append("src", new Blob([src]), SRCNAME)
-        $.post({
+        if (g_srcExecutionInProgress) {
+            g_srcExecutionInProgress.abort()
+        }
+        g_srcExecutionInProgress = $.post({
             data: formData,
             contentType: false,
             processData: false,
             success: res => {
+                g_srcExecutionInProgress = null
                 clearTimeout(timeout_clearConsole)
                 onSuccess(JSON.parse(res))
             },
-            error: console.error
+            error: (xhr, status, err) => {
+                g_srcExecutionInProgress = null
+                clearTimeout(timeout_clearConsole)
+                // only if the request wasn't explicitly aborted
+                if (xhr.readyState !== XMLHttpRequest.UNSENT) {
+                    console.error(err)
+                    alert("Server isn't responding")
+                }
+            }
         })
     }
 
     $(document).ready(() => {
+        // prevent printing err dialog box when refreshing the page during src execution
+        $(window).on("beforeunload", () => {
+            if (g_srcExecutionInProgress) {
+                g_srcExecutionInProgress.abort()
+            }
+        })
+
         $(document).keydown(event => {
             if (event.ctrlKey && event.key === "s") {
                 event.preventDefault()
