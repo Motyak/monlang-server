@@ -1,4 +1,28 @@
 #!/bin/bash
+
+# compared to coreutils timeout utility..
+# .., will not print anything when child process..
+# ..segfaults or crash
+function timeout (
+    set -o nounset
+    local seconds=$1
+    local cmd="${@:2}"
+
+    $cmd & cmd_pid=$!
+    { sleep $seconds && kill -15 $cmd_pid; } 2>/dev/null & timeout=$!
+    set +o errexit
+    2>/dev/null wait -n $cmd_pid; exit_code=$?
+    2>/dev/null kill -0 $timeout && {
+        kill -9 $timeout
+        return $exit_code
+    }
+    wait -n $timeout
+    [ $? -ne 0 ] && {
+        return $exit_code
+    }
+    return 124
+)
+
 set -o errexit
 set -o nounset
 
@@ -16,7 +40,7 @@ touch home/out/console.txt
 cp "$tmppath" "home/$srcpath"
 cd home
 &>/dev/null ../monlang-parser/bin/main.elf "$srcpath" & parser_pid=$!
-# we need to use stdbuf otherwise we won't get output in case the program segfaults, etc.. or gets timed out
+# we need to use stdbuf otherwise we won't get output in case the program segfaults or gets timed out..
 &>out/console.txt timeout 5 stdbuf -oL ../monlang-interpreter/bin/main.elf "$srcpath" & interpreter_pid=$!
 set +o errexit; trap - ERR
 wait -n $parser_pid; parser_exit_code=$?
