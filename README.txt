@@ -18,6 +18,9 @@ curl -sS http://127.0.0.1:55555 -F 'src=@factorial.ml'
 # ..so our server will receive as full path "factorial.ml" instead of "examples/factorial.ml")
 curl -sS http://127.0.0.1:55555 -F 'src=@examples/factorial.ml' -F 'srcpath=examples/factorial.ml'
 
+# POST stdin (have to specify a srcpath here)
+curl -sS http://127.0.0.1:55555 -F 'src=@-' -F 'srcpath=\<stdin\>'
+
 ---
 
 # GET ERR files
