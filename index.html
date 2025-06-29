@@ -628,7 +628,7 @@
         const formData = new FormData()
         formData.append("src", new Blob([src]), SRCNAME)
         if (g_srcExecutionInProgress) {
-            g_srcExecutionInProgress.abort()
+            g_srcExecutionInProgress.abort("explicitly aborted")
         }
         g_srcExecutionInProgress = $.post({
             data: formData,
@@ -639,12 +639,10 @@
                 clearTimeout(timeout_clearConsole)
                 onSuccess(JSON.parse(res))
             },
-            error: (xhr, status, err) => {
-                g_srcExecutionInProgress = null
+            error: (xhr, textStatus, err) => {
                 clearTimeout(timeout_clearConsole)
-                // only if the request wasn't explicitly aborted
-                if (xhr.readyState !== XMLHttpRequest.UNSENT) {
-                    console.error(err)
+                console.error(err)
+                if (textStatus !== "explicitly aborted") {
                     alert("Server isn't responding")
                 }
             }
@@ -655,7 +653,8 @@
         // prevent printing err dialog box when refreshing the page during src execution
         $(window).on("beforeunload", () => {
             if (g_srcExecutionInProgress) {
-                g_srcExecutionInProgress.abort()
+                g_srcExecutionInProgress.abort("explicitly aborted")
+                g_srcExecutionInProgress = null
             }
         })
 
