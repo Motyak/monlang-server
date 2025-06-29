@@ -32,16 +32,20 @@ trap 'echo "script,$?"' ERR
 
 tmppath="$1"
 srcpath="$2"
+request_id="${3:-0}"
 
 srcdir="."; [[ "$srcpath" = */* ]] && srcdir="${srcpath%/*}"
 
-mkdir -p home/{out,"$srcdir"}
-touch home/out/console.txt
-cp "$tmppath" "home/$srcpath"
-cd home
-&>/dev/null ../monlang-parser/bin/main.elf "$srcpath" & parser_pid=$!
+rm -rf "home/${request_id/\//}"; mkdir -p $_ # removing slashes for extra security
+home_dir="$(realpath "$_")"
+
+mkdir -p "$home_dir"/{out,"$srcdir"}
+cat /dev/null > "${home_dir}/out/console.txt"
+cp "$tmppath" "${home_dir}/$srcpath"
+cd "$home_dir"
+&>/dev/null ../../monlang-parser/bin/main.elf "$srcpath" & parser_pid=$!
 # we need to use stdbuf otherwise we won't get output in case the program segfaults or gets timed out..
-&>out/console.txt timeout 5 stdbuf -oL ../monlang-interpreter/bin/main.elf "$srcpath" & interpreter_pid=$!
+&>out/console.txt timeout 5 stdbuf -oL ../../monlang-interpreter/bin/main.elf "$srcpath" & interpreter_pid=$!
 set +o errexit; trap - ERR
 wait -n $parser_pid; parser_exit_code=$?
 wait -n $interpreter_pid; interpreter_exit_code=$?
