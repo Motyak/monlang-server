@@ -73,7 +73,14 @@
 <script type="module">
     import * as monaco from "https://esm.sh/monaco-editor@0.52.2?bundle"
 
-    monaco.languages.setLanguageConfiguration("plaintext", {
+    monaco.editor.defineTheme("custom-theme", {
+        base: "vs",
+        inherit: false,
+        rules: [],
+        colors: {},
+    })
+
+    monaco.languages.setLanguageConfiguration("scheme", {
         autoClosingPairs: [
             {open: "(", close: ")"},
             {open: "[", close: "]"},
@@ -102,7 +109,9 @@
 
     const editor_conf = {
         automaticLayout: true,
+        language: "scheme", // working quote token parsing
         lineNumbersMinChars: 3,
+        theme: "custom-theme", // remove token colors
         occurrencesHighlight: "off",
         value: queryParams.get("src") ?? "",
         wordSeparators: "()[]{}:\"`,.#",
