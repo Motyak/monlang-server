@@ -73,14 +73,9 @@
 <script type="module">
     import * as monaco from "https://esm.sh/monaco-editor@0.52.2?bundle"
 
-    monaco.editor.defineTheme("custom-theme", {
-        base: "vs",
-        inherit: false,
-        rules: [],
-        colors: {},
-    })
+    monaco.languages.register({id: "monlang"})
 
-    monaco.languages.setLanguageConfiguration("scheme", {
+    monaco.languages.setLanguageConfiguration("monlang", {
         autoClosingPairs: [
             {open: "(", close: ")"},
             {open: "[", close: "]"},
@@ -88,8 +83,13 @@
             {open: '"', close: '"'},
             {open: "```", close: "```"},
         ],
+        brackets: [
+            ["(", ")"],
+            ["[", "]"],
+            ["{", "}"],
+        ],
+        colorizedBracketPairs: [],
         folding: {
-            markers: {start: /^```/, end: /^```/},
             offSide: true,
         },
         onEnterRules: [
@@ -107,16 +107,43 @@
         ],
     })
 
-    const editor_conf = {
+    monaco.languages.setMonarchTokensProvider("monlang", {
+        tokenizer: {
+            root: [
+                [/"/, "string", "@string"],
+                [/```/, "string", "@multilineString"],
+            ],
+            string: [
+                [/[^\\"]+/, "string"],
+                [/\\./, "string.escape"],
+                [/"/, "string", "@pop"],
+            ],
+            multilineString: [
+                [/[^\\`]+/, "string"],
+                [/\\./, "string.escape"],
+                [/```/, "string", "@pop"],
+            ],
+        }
+    })
+
+    // remove token coloring
+    monaco.editor.defineTheme("monlang", {
+        base: "vs",
+        inherit: false,
+        rules: [],
+        colors: {},
+    })
+
+    editor = monaco.editor.create($("#editorpanel")[0], {
         automaticLayout: true,
-        language: "scheme", // working quote token parsing
+        language: "monlang",
         lineNumbersMinChars: 3,
-        theme: "custom-theme", // remove token colors
+        theme: "monlang",
         occurrencesHighlight: "off",
         value: queryParams.get("src") ?? "",
         wordSeparators: "()[]{}:\"`,.#",
-    }
-    editor = monaco.editor.create($("#editorpanel")[0], editor_conf)
+    })
+
     editor.getModel().pushEOL(monaco.editor.EndOfLineSequence.LF)
     editor.focus() // autofocus
 </script>
