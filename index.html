@@ -108,20 +108,37 @@
     })
 
     monaco.languages.setMonarchTokensProvider("monlang", {
+        includeLF: true, // otherwise can't use \n in regexes
         tokenizer: {
             root: [
+                /* order matters here !! */
+                /* 1 */
+                [/^ *var( |$)(?!([:+*%\/-]|\*\*|&&|\|\|)=)/, "keyword"],
+
+                /* 2 */
                 [/"/, "string", "@string"],
                 [/```/, "string", "@multilineString"],
+
+                /* 3 */
+                [/[()[\]{}"`.:, \n]/, "delimiter", "@delimiter"],
             ],
             string: [
-                [/[^\\"]+/, "string"],
+                [/[^\\"]+/, "string"], // match newlines as well, to detect non-ending quotes more easily
                 [/\\./, "string.escape"],
-                [/"/, "string", "@pop"],
+                [/"/, "string", "@pop"], // don't pop on newline, to detect non-ending quotes more easily
             ],
             multilineString: [
                 [/[^\\`]+/, "string"],
                 [/\\./, "string.escape"],
                 [/```/, "string", "@pop"],
+            ],
+            delimiter: [
+                [/'/, "string", "@atomQuot"],
+                [/(?!')/, "delimiter", "@pop"],
+            ],
+            atomQuot: [
+                [/[^()[\]{}"`.:, \n]+/, "string"],
+                [/(?=[()[\]{}"`.:, \n])/, "string", "@popall"],
             ],
         }
     })
@@ -130,7 +147,16 @@
     monaco.editor.defineTheme("monlang", {
         base: "vs",
         inherit: false,
-        rules: [],
+        rules: [
+            {
+                token: "keyword",
+                fontStyle: "bold",
+            },
+            {
+                token: "string",
+                fontStyle: "italic",
+            },
+        ],
         colors: {},
     })
 
