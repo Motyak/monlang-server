@@ -1,12 +1,13 @@
 <?php
-    $request_id = rand(1000, 9999);
+    // $DEBUG = true; //toggle
+    $request_id = $DEBUG? 0 : rand(1000, 9999);
 
     /* handles POST */
     if ($_SERVER["REQUEST_METHOD"] === "POST") {
         if (!isset($_FILES["src"])) exit;
         $srcpath = $_POST["srcpath"] ?? $_FILES["src"]["full_path"];
         $tmppath = $_FILES["src"]["tmp_name"];
-        register_shutdown_function(fn() => `rm -rf home/{$request_id}`);
+        $DEBUG || register_shutdown_function(fn() => `rm -rf home/{$request_id}`);
         $scriptout = `/bin/bash eval.sh '{$tmppath}' '{$srcpath}' {$request_id}`;
 
         echo json_encode(array(
