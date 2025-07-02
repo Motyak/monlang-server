@@ -451,28 +451,19 @@
                     expectedTokenName = match[1]
                 }
                 else {
-                    match = LVx_lines[i].match(/\b(block|body)\b/)
-                    if (match) {
-                        expectedTokenName = "BlockExpression"
-                    }
-                    else {
-                        match = LVx_lines[i].match(/\b(parameter|variadic parameters|operator)\b/)
-                        if (match) {
-                            expectedTokenName = "Symbol"
+                    const map = [
+                        [/\b(block|body)\b/, "BlockExpression"],
+                        [/\b(parameter|variadic parameters|operator)\b/, "Symbol"],
+                        [/\b(index)\b/, "SubscriptIndex"],
+                        [/\b(range)\b/, "SubscriptRange"],
+                    ]
+                    map.forEach(pair => {
+                        const key_regex = pair[0]
+                        const val = pair[1]
+                        if (LVx_lines[i].match(key_regex)) {
+                            expectedTokenName = val
                         }
-                        else {
-                            match = LVx_lines[i].match(/\b(index)\b/)
-                            if (match) {
-                                expectedTokenName = "SubscriptIndex"
-                            }
-                            else {
-                                match = LVx_lines[i].match(/\b(range)\b/)
-                                if (match) {
-                                    expectedTokenName = "SubscriptRange"
-                                }
-                            }
-                        }
-                    }
+                    });
                 }
                 if (expectedTokenName === "") {
                     g_to_token_id[LVx][i] = null // no token assigned
