@@ -1,4 +1,5 @@
 <?php
+    $DEBUG = false;
     // $DEBUG = true; //toggle
     $request_id = $DEBUG? 0 : rand(1000, 9999);
 
