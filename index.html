@@ -120,7 +120,8 @@
                 [/```/, "string", "@multilineString"],
 
                 /* 3 */
-                [/[()[\]{}"`.:, \n]/, "delimiter", "@delimiter"],
+                [/[()[\]{}"`:, \n]/, "delimiter", "@delimiter"], // removed dot here
+                [/\./, "delimiter"],
             ],
             string: [
                 [/[^\\"]+/, "string"], // match newlines as well, to detect non-ending quotes more easily
