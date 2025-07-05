@@ -436,17 +436,18 @@
     const get_res = () => g_resObj
     const set_res = res => {
         g_resObj = res
-        console.log(g_resObj) ; //
+        console.log(g_resObj) ;//
 
         /* construct `tr index to token id` map */
         ["LV1", "LV2"].forEach(LVx => {
             let LVx_ast_txt = g_resObj["out"][`${LVx}.ast.txt`]
             let LVx_lines = LVx_ast_txt.trimEnd().split("\n")
             let tokenList = g_resObj["out"][`${LVx}.tokens.json`]["list"]
-            let i = 0 // LVx_ast_txt index
+            let i = 0 // LVx_lines index
             let j = 0 // tokenList index
             for (; i < LVx_lines.length; ++i) {
                 let expectedTokenName = ""
+                let should_incr_j = true
                 let match = LVx_lines[i].match(/^ *(?:~|-)> (?:\w+(?: #\d+)?: )?([A-Z][a-z_]\w+)(?: #\d+)?/)
                 if (match) {
                     expectedTokenName = match[1]
@@ -457,17 +458,25 @@
                         [/\b(parameter|variadic parameters|operator)\b/, "Symbol"],
                         [/\b(index)\b/, "SubscriptIndex"],
                         [/\b(range)\b/, "SubscriptRange"],
+                        [/\b(function|argument)\b/, "@peekNext"],
                     ]
-                    map.forEach(pair => {
+                    for (let z = 0; z < map.length; ++z) {
+                        const pair = map[z]
                         const key_regex = pair[0]
                         const val = pair[1]
                         if (LVx_lines[i].match(key_regex)) {
                             expectedTokenName = val
+                            break
                         }
-                    });
+                    }
                 }
                 if (expectedTokenName === "") {
                     g_to_token_id[LVx][i] = null // no token assigned
+                    continue
+                }
+                if (expectedTokenName === "@peekNext") {
+                    g_to_token_id[LVx][i] = j // assign next token, whatever it is
+                                              // , don't increment j
                     continue
                 }
                 while (tokenList[j]["name"] !== expectedTokenName && j + 1 < tokenList.length) {
