@@ -1,6 +1,6 @@
 <?php
     $DEBUG = false;
-    // $DEBUG = true; //toggle
+    $DEBUG = true; //toggle
     $request_id = $DEBUG? 0 : rand(1000, 9999);
 
     /* handles POST */
@@ -22,7 +22,7 @@
                 "LV1.tokens.json" => json_decode(file_get_contents("home/{$request_id}/out/LV1.tokens.json")),
                 "LV2.tokens.json" => json_decode(file_get_contents("home/{$request_id}/out/LV2.tokens.json")),
             )
-        )), "\n";
+        ), JSON_INVALID_UTF8_IGNORE), "\n";
 
         exit;
     }
