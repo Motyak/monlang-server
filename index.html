@@ -220,6 +220,13 @@
             .css({top: 0, left: 0})
     }
 
+    const get_err_desc = (err_fmt, LVx = null) => {
+        if (LVx == null) {
+            LVx = g_resObj["out"]["LV1.tokens.json"]["traceback"][0] !== undefined? "LV1" : "LV2"
+        }
+        return g_to_err_desc[LVx][err_fmt]
+    }
+
     const addLinksInConsole = () => {
         const literalStrAsRegex = str => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
 
@@ -258,13 +265,6 @@
             success: onSuccess,
             error: console.error
         })
-    }
-
-    const get_err_desc = (err_fmt, LVx = null) => {
-        if (LVx == null) {
-            LVx = g_resObj["out"]["LV1.tokens.json"]["traceback"][0] !== undefined? "LV1" : "LV2"
-        }
-        return g_to_err_desc[LVx][err_fmt]
     }
 
     // get associated token from tr index and parent
@@ -441,6 +441,34 @@
         g_resObj = res
         console.log(g_resObj) ;//
 
+        /* construct `errFmt to errDesc` map */
+        ["LV1", "LV2"].forEach(LVx => fetchFile(`${LVx}.ERR.txt`, LVx_ERR_txt => {
+            let LVx_ERR_txt_lines = LVx_ERR_txt.split("\n")
+            for (let i = 0; i < LVx_ERR_txt_lines.length; ++i) {
+                let curLine = LVx_ERR_txt_lines[i]
+                let index = curLine.indexOf(" ")
+                let curErrFmt = curLine.slice(0, index)
+                let curErrDesc = curLine.slice(index + 1)
+                g_to_err_desc[LVx][curErrFmt] = curErrDesc
+            }
+        }))
+
+        /* set console panel */
+        if (g_resObj["prog"] === "interpreter") {
+            let exitcode = g_resObj["prog_exitcode"]
+            $("#prog_out").text(g_resObj["out"]["console.txt"])
+            $("#prog_status").text(`Program terminated with exit code ${exitcode}`)
+                .css("border-top-color", exitcode === 0? "green" : "red")
+                .show()
+        }
+        else if (g_resObj["prog"] === "parser") {
+            $("#prog_out").text(g_resObj["out"]["traceback.txt"])
+            $("#prog_status").hide()
+        }
+        addLinksInConsole()
+        addHintsInConsole()
+        $("#consolepanel").show() ;//
+
         /* construct `tr index to token id` map */
         ["LV1", "LV2"].forEach(LVx => {
             let LVx_ast_txt = g_resObj["out"][`${LVx}.ast.txt`]
@@ -489,19 +517,7 @@
                 // console.log(`i=${i} ; line=${LVx_lines[i]} ; j=${j} ; expected=${expectedTokenName}`) //debug
                 j += 1
             }
-        }) ;//
-
-        /* construct `errFmt to errDesc` map */
-        ["LV1", "LV2"].forEach(LVx => fetchFile(`${LVx}.ERR.txt`, LVx_ERR_txt => {
-            let LVx_ERR_txt_lines = LVx_ERR_txt.split("\n")
-            for (let i = 0; i < LVx_ERR_txt_lines.length; ++i) {
-                let curLine = LVx_ERR_txt_lines[i]
-                let index = curLine.indexOf(" ")
-                let curErrFmt = curLine.slice(0, index)
-                let curErrDesc = curLine.slice(index + 1)
-                g_to_err_desc[LVx][curErrFmt] = curErrDesc
-            }
-        }))
+        })
 
         /* construct symbol list */
         let symbolList = []
@@ -599,95 +615,77 @@
             $("#symbol_list table").html(newRows)
         }
 
-        /* set console panel */
-        if (g_resObj["prog"] === "interpreter") {
-            let exitcode = g_resObj["prog_exitcode"]
-            $("#prog_out").text(g_resObj["out"]["console.txt"])
-            $("#prog_status").text(`Program terminated with exit code ${exitcode}`)
-                .css("border-top-color", exitcode === 0? "green" : "red")
-                .show()
-        }
-        else if (g_resObj["prog"] === "parser") {
-            $("#prog_out").text(g_resObj["out"]["traceback.txt"])
-            $("#prog_status").hide()
-        }
-        addLinksInConsole()
-        addHintsInConsole()
-        $("#consolepanel").show()
-
         /* set syntaxtree panel */
-        setTimeout(() => {
-            g_syntaxTreeHtml = {"LV1": "", "LV2": ""}
+        g_syntaxTreeHtml = {"LV1": "", "LV2": ""}
 
-            /* fill newRows["LV1"] and newRows["LV2"] */
-            if (g_autoExpandTrees) {
-                ["LV1", "LV2"].forEach(LVx => {
-                    let LVx_lines = g_resObj["out"][`${LVx}.ast.txt`].trimEnd().split("\n")
-                    for (let i = 0; i < LVx_lines.length; ++i) {
+        /* fill newRows["LV1"] and newRows["LV2"] */
+        if (g_autoExpandTrees) {
+            ["LV1", "LV2"].forEach(LVx => {
+                let LVx_lines = g_resObj["out"][`${LVx}.ast.txt`].trimEnd().split("\n")
+                for (let i = 0; i < LVx_lines.length; ++i) {
+                    let newRow = htmlizeAsExpanded(LVx_lines, i)
+                    g_syntaxTreeHtml[LVx] += newRow
+                }
+            })
+        }
+        else /* build gradually (default mode) */ {
+            ["LV1", "LV2"].forEach(LVx => {
+                let LVx_lines = g_resObj["out"][`${LVx}.ast.txt`].trimEnd().split("\n")
+                let malformed_parent = false // /!\ gets from false to true only one time
+                let malformed_parent_indent = 0
+                for (let i = 0; i < LVx_lines.length; ++i) {
+                    if (i === 0 || LVx_lines[i].match(/~>\s/)) {
+                        malformed_parent = true // or first elem
+                        malformed_parent_indent = get_indent(LVx_lines[i])
                         let newRow = htmlizeAsExpanded(LVx_lines, i)
                         g_syntaxTreeHtml[LVx] += newRow
+                        continue
                     }
-                })
-            }
-            else /* build gradually (default mode) */ {
-                ["LV1", "LV2"].forEach(LVx => {
-                    let LVx_lines = g_resObj["out"][`${LVx}.ast.txt`].trimEnd().split("\n")
-                    let malformed_parent = false // /!\ gets from false to true only one time
-                    let malformed_parent_indent = 0
-                    for (let i = 0; i < LVx_lines.length; ++i) {
-                        if (i === 0 || LVx_lines[i].match(/~>\s/)) {
-                            malformed_parent = true // or first elem
-                            malformed_parent_indent = get_indent(LVx_lines[i])
-                            let newRow = htmlizeAsExpanded(LVx_lines, i)
-                            g_syntaxTreeHtml[LVx] += newRow
+                    else if (malformed_parent) {
+                        if (get_indent(LVx_lines[i]) > malformed_parent_indent + 2) {
                             continue
                         }
-                        else if (malformed_parent) {
-                            if (get_indent(LVx_lines[i]) > malformed_parent_indent + 2) {
-                                continue
-                            }
 
-                            // goto main logic
-                        }
-                        else if (get_indent(LVx_lines[i]) > 2) {
-                            continue
-                        }
-                        let newRow = htmlizeAsCollapsed(LVx_lines, i)
-                        g_syntaxTreeHtml[LVx] += newRow
+                        // goto main logic
                     }
-                })
-            }
+                    else if (get_indent(LVx_lines[i]) > 2) {
+                        continue
+                    }
+                    let newRow = htmlizeAsCollapsed(LVx_lines, i)
+                    g_syntaxTreeHtml[LVx] += newRow
+                }
+            })
+        }
 
-            /* update DOM */
-            hide_tooltip()
-            if (g_resObj["prog"] === "interpreter" || g_resObj["out"]["LV2.tokens.json"]["traceback"].length > 0) {
-                /* LV2 is active, both are accessible*/
-                $("#LVx_tree table").html(g_syntaxTreeHtml["LV2"])
-                $("#LVx_tree").attr("name", "LV2")
-                $("#LV1_btn, #LV2_btn")
-                    .prop("disabled", false) // .removeAttr("disabled")
-                    .removeClass("cursor-not-allowed")
-                $("#LV1_btn")
-                    .removeClass("font-bold bg-gray-100")
-                    .addClass("opacity-50")
-                $("#LV2_btn")
-                    .removeClass("opacity-50")
-                    .addClass("font-bold bg-gray-100")
-            }
-            else {
-                /* LV1 is active, LV2 is inaccessible */
-                $("#LVx_tree table").html(g_syntaxTreeHtml["LV1"])
-                $("#LVx_tree").attr("name", "LV1")
-                $("#LV1_btn")
-                    .prop("disabled", false)
-                    .removeClass("opacity-50 cursor-not-allowed")
-                    .addClass("font-bold bg-gray-100")
-                $("#LV2_btn")
-                    .prop("disabled", true)
-                    .removeClass("font-bold bg-gray-100")
-                    .addClass("opacity-50 cursor-not-allowed")
-            }
-        }, 16 /*0 makes the UI less responsive*/)
+        /* update DOM */
+        hide_tooltip()
+        if (g_resObj["prog"] === "interpreter" || g_resObj["out"]["LV2.tokens.json"]["traceback"].length > 0) {
+            /* LV2 is active, both are accessible*/
+            $("#LVx_tree table").html(g_syntaxTreeHtml["LV2"])
+            $("#LVx_tree").attr("name", "LV2")
+            $("#LV1_btn, #LV2_btn")
+                .prop("disabled", false) // .removeAttr("disabled")
+                .removeClass("cursor-not-allowed")
+            $("#LV1_btn")
+                .removeClass("font-bold bg-gray-100")
+                .addClass("opacity-50")
+            $("#LV2_btn")
+                .removeClass("opacity-50")
+                .addClass("font-bold bg-gray-100")
+        }
+        else {
+            /* LV1 is active, LV2 is inaccessible */
+            $("#LVx_tree table").html(g_syntaxTreeHtml["LV1"])
+            $("#LVx_tree").attr("name", "LV1")
+            $("#LV1_btn")
+                .prop("disabled", false)
+                .removeClass("opacity-50 cursor-not-allowed")
+                .addClass("font-bold bg-gray-100")
+            $("#LV2_btn")
+                .prop("disabled", true)
+                .removeClass("font-bold bg-gray-100")
+                .addClass("opacity-50 cursor-not-allowed")
+        }
     }
 
     const execute_src = (src = get_src(), onSuccess = set_res) => {
