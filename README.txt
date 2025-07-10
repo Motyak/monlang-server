@@ -31,7 +31,7 @@ curl -sS http://127.0.0.1:55555/LV2.ERR.txt
 
 # you can bookmark programs (ctrl+D outside of the editor focus),
 # a query parameter is automatically updated as the editor content changes.
-# e.g.: http://127.0.0.1:55555/?src=print%28%2522Hello%2C%2520World%21%2522%29%250A
+# e.g.: http://127.0.0.1:55555/?src=print(%22Hello%2C%20World!%22)%0A
 
 ---
 
