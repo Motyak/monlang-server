@@ -114,8 +114,9 @@
                 /* order matters here !! */
                 /* 1 */
                 [/^ *var( |\n)(?!([:+*%\/-]|\*\*|&&|\|\|)=)/, "keyword"],
-                /*1*/ [/^( *)-- .*{\n/, "comment", "@trailing_block_in_comment"],
-                /*2*/ [/^( *)-- .*\n/, "comment"],
+                [/^( *)-- .*{\n/, "comment", "@trailing_block_in_comment"],
+                [/^( *)-- .*```\n/, "comment", "@trailing_quotblock_in_comment"],
+                [/^( *)-- .*\n/, "comment"],
 
                 /* 2 */
                 [/"/, "string", "@string"],
@@ -147,6 +148,11 @@
                 /* order matters here !! */
                 [/^.*{\n/, "comment", "@trailing_block_in_comment"],
                 [/^ *}.*\n/, "comment", "@pop"],
+                [/^.*\n/, "comment"],
+            ],
+            trailing_quotblock_in_comment: [
+                /* order matters here !! */
+                [/^ *```.*\n/, "comment", "@pop"],
                 [/^.*\n/, "comment"],
             ],
         }
