@@ -114,6 +114,8 @@
                 /* order matters here !! */
                 /* 1 */
                 [/^ *var( |\n)(?!([:+*%\/-]|\*\*|&&|\|\|)=)/, "keyword"],
+                /*1*/ [/^( *)-- .*{\n/, "comment", "@trailing_block_in_comment"],
+                /*2*/ [/^( *)-- .*\n/, "comment"],
 
                 /* 2 */
                 [/"/, "string", "@string"],
@@ -141,6 +143,12 @@
                 [/[^()[\]{}"`.:, \n]+/, "string"],
                 [/(?=[()[\]{}"`.:, \n])/, "string", "@popall"],
             ],
+            trailing_block_in_comment: [
+                /* order matters here !! */
+                [/^.*{\n/, "comment", "@trailing_block_in_comment"],
+                [/^ *}.*\n/, "comment", "@pop"],
+                [/^.*\n/, "comment"],
+            ],
         }
     })
 
@@ -156,6 +164,10 @@
             {
                 token: "string",
                 fontStyle: "italic",
+            },
+            {
+                token: "comment",
+                foreground: "#7F7F7F"
             },
         ],
         colors: {},
