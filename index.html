@@ -89,6 +89,9 @@
             ["{", "}"],
         ],
         colorizedBracketPairs: [],
+        // comments: {
+        //     lineComment: "--",
+        // },
         folding: {
             offSide: true,
         },
@@ -147,7 +150,7 @@
             trailing_block_in_comment: [
                 /* order matters here !! */
                 [/^.*{\n/, "comment", "@trailing_block_in_comment"],
-                [/^ *}.*\n/, "comment", "@pop"],
+                [/^ *(-- )?}.*\n/, "comment", "@pop"],
                 [/^.*\n/, "comment"],
             ],
             trailing_quotblock_in_comment: [
@@ -217,6 +220,62 @@
         editor.revealLineInCenter(line)
         editor.setPosition({lineNumber: line, column: col})
         editor.focus()
+    }
+
+    const toggle_comment_selection = () => {
+        let selection = editor.getSelection()
+        let lineRange = {
+            startLineNumber: selection.startLineNumber,
+            startColumn: 1,
+            endLineNumber: selection.endLineNumber,
+            endColumn: editor.getModel().getLineMaxColumn(selection.endLineNumber),
+        }
+
+        let selectedLinesStr = editor.getModel().getValueInRange(lineRange)
+        let selectedLinesArr = selectedLinesStr.split("\n")
+        let addComments = selectedLinesArr.some((line) => /\S/.test(line) && !/^ *-- /.test(line))
+
+        if (addComments) {
+            let newText = selectedLinesStr.replace(/^( *)(.+)$/gm, "$1-- $2")
+            editor.executeEdits("adding line comment", [
+                {range: lineRange, text: newText}
+            ])
+            if (selection.isEmpty()) {
+                editor.setPosition({
+                    lineNumber: selection.startLineNumber,
+                    column: selection.startColumn + 3,
+                })
+            }
+            else {
+                editor.setSelection({
+                    startLineNumber: selection.startLineNumber,
+                    startColumn: selection.startColumn + 3,
+                    endLineNumber: selection.endLineNumber,
+                    endColumn: selection.endColumn + 3,
+                })
+            }
+        }
+        
+        else {
+            let newText = selectedLinesStr.replace(/^( *)-- (.*)$/gm, "$1$2")
+            editor.executeEdits("removing line comment", [
+                {range: lineRange, text: newText}
+            ])
+            if (selection.isEmpty()) {
+                editor.setPosition({
+                    lineNumber: selection.startLineNumber,
+                    column: selection.startColumn - 3,
+                })
+            }
+            else {
+                editor.setSelection({
+                    startLineNumber: selection.startLineNumber,
+                    startColumn: selection.startColumn - 3,
+                    endLineNumber: selection.endLineNumber,
+                    endColumn: selection.endColumn - 3,
+                })
+            }
+        }
     }
 
     const show_tooltip = (msg = null, event = null) => {
@@ -781,6 +840,13 @@
                 let selection = document.getSelection()
                 selection.removeAllRanges()
                 selection.addRange(range)
+            }
+
+            if (event.ctrlKey && event.shiftKey && event.key === "/") {
+                event.preventDefault() // just in case
+                if (editor.hasTextFocus()) {
+                    toggle_comment_selection()
+                }
             }
         })
 
