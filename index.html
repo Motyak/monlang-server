@@ -105,6 +105,9 @@
     }
 
     const toggle_comment_selection = () => {
+        // "ineffective lines" refer to lines that won't get modified in any case (add/remove)
+        const matchesEffectiveLine = (line) => /^ *[^} ][^ ]*/.test(line)
+
         let selection = editor.getSelection()
         let lineRange = {
             startLineNumber: selection.startLineNumber,
@@ -115,73 +118,48 @@
 
         let selectedLinesStr = editor.getModel().getValueInRange(lineRange)
         let selectedLinesArr = selectedLinesStr.split("\n")
-        let addComments = selectedLinesArr.some((line) => /^ *[^} ][^ ]*/.test(line) && !/^ *-- /.test(line))
+        let addComments = selectedLinesArr.some((line) => matchesEffectiveLine(line) && !/^ *-- /.test(line))
 
+        let newText
+        let newCursorOffset
         if (addComments) {
-            let newText = selectedLinesStr.replace(/^( *)([^} \n][^ \n]*)/gm, "$1-- $2")
-            editor.executeEdits("adding line comment", [
-                {range: lineRange, text: newText}
-            ])
-            if (selection.isEmpty()) {
-                if (/^ *[^} ][^ ]*/.test(selectedLinesArr[0])) {
-                    editor.setPosition({
-                        lineNumber: selection.startLineNumber,
-                        column: selection.startColumn + 3,
-                    })
-                }
-            }
-            else {
-                if (editor.getPosition().lineNumber === selection.startLineNumber) {
-                    // change selection direction (begin becomes end and vice-versa)
-                    editor.setSelection({
-                        startLineNumber: selection.endLineNumber,
-                        startColumn: selection.endColumn + (/^ *[^} ][^ ]*/.test(selectedLinesArr[selectedLinesArr.length - 1])? 3 : 0),
-                        endLineNumber: selection.startLineNumber,
-                        endColumn: selection.startColumn + (/^ *[^} ][^ ]*/.test(selectedLinesArr[0])? 3 : 0),
-                    })
-                }
-                else {
-                    editor.setSelection({
-                        startLineNumber: selection.startLineNumber,
-                        startColumn: selection.startColumn + (/^ *[^} ][^ ]*/.test(selectedLinesArr[0])? 3 : 0),
-                        endLineNumber: selection.endLineNumber,
-                        endColumn: selection.endColumn + (/^ *[^} ][^ ]*/.test(selectedLinesArr[selectedLinesArr.length - 1])? 3 : 0),
-                    })
-                }
+            newText = selectedLinesStr.replace(/^( *)([^} \n][^ \n]*)/gm, "$1-- $2")
+            newCursorOffset = 3
+        }
+        else {
+            newText = selectedLinesStr.replace(/^( *)-- (.*)$/gm, "$1$2")
+            newCursorOffset = -3
+        }
+
+        editor.executeEdits("toggling line comment", [
+            {range: lineRange, text: newText}
+        ])
+
+        if (selection.isEmpty()) {
+            if (matchesEffectiveLine(selectedLinesArr[0])) {
+                editor.setPosition({
+                    lineNumber: selection.startLineNumber,
+                    column: selection.startColumn + newCursorOffset,
+                })
             }
         }
-        
-        else /* remove comments */ {
-            let newText = selectedLinesStr.replace(/^( *)-- (.*)$/gm, "$1$2")
-            editor.executeEdits("removing line comment", [
-                {range: lineRange, text: newText}
-            ])
-            if (selection.isEmpty()) {
-                if (/^ *[^} ][^ ]*/.test(selectedLinesArr[0])) {
-                    editor.setPosition({
-                        lineNumber: selection.startLineNumber,
-                        column: selection.startColumn - 3,
-                    })
-                }
+        else {
+            if (editor.getPosition().lineNumber === selection.startLineNumber) {
+                // change selection direction (end becomes start and vice-versa)
+                editor.setSelection({
+                    startLineNumber: selection.endLineNumber,
+                    startColumn: selection.endColumn + (matchesEffectiveLine(selectedLinesArr[selectedLinesArr.length - 1])? newCursorOffset : 0),
+                    endLineNumber: selection.startLineNumber,
+                    endColumn: selection.startColumn + (matchesEffectiveLine(selectedLinesArr[0])? newCursorOffset : 0),
+                })
             }
             else {
-                if (editor.getPosition().lineNumber === selection.startLineNumber) {
-                    // change selection direction (begin becomes end and vice-versa)
-                    editor.setSelection({
-                        startLineNumber: selection.endLineNumber,
-                        startColumn: selection.endColumn - (/^ *[^} ][^ ]*/.test(selectedLinesArr[selectedLinesArr.length - 1])? 3 : 0),
-                        endLineNumber: selection.startLineNumber,
-                        endColumn: selection.startColumn - (/^ *[^} ][^ ]*/.test(selectedLinesArr[0])? 3 : 0),
-                    })
-                }
-                else {
-                    editor.setSelection({
-                        startLineNumber: selection.startLineNumber,
-                        startColumn: selection.startColumn - (/^ *[^} ][^ ]*/.test(selectedLinesArr[0])? 3 : 0),
-                        endLineNumber: selection.endLineNumber,
-                        endColumn: selection.endColumn - (/^ *[^} ][^ ]*/.test(selectedLinesArr[selectedLinesArr.length - 1])? 3 : 0),
-                    })
-                }
+                editor.setSelection({
+                    startLineNumber: selection.startLineNumber,
+                    startColumn: selection.startColumn + (matchesEffectiveLine(selectedLinesArr[0])? newCursorOffset : 0),
+                    endLineNumber: selection.endLineNumber,
+                    endColumn: selection.endColumn + (matchesEffectiveLine(selectedLinesArr[selectedLinesArr.length - 1])? newCursorOffset : 0),
+                })
             }
         }
     }
