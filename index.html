@@ -115,47 +115,73 @@
 
         let selectedLinesStr = editor.getModel().getValueInRange(lineRange)
         let selectedLinesArr = selectedLinesStr.split("\n")
-        let addComments = selectedLinesArr.some((line) => /\S/.test(line) && !/^ *-- /.test(line))
+        let addComments = selectedLinesArr.some((line) => /^ *[^} ][^ ]*/.test(line) && !/^ *-- /.test(line))
 
         if (addComments) {
-            let newText = selectedLinesStr.replace(/^( *)(.+)$/gm, "$1-- $2")
+            let newText = selectedLinesStr.replace(/^( *)([^} \n][^ \n]*)/gm, "$1-- $2")
             editor.executeEdits("adding line comment", [
                 {range: lineRange, text: newText}
             ])
             if (selection.isEmpty()) {
-                editor.setPosition({
-                    lineNumber: selection.startLineNumber,
-                    column: selection.startColumn + 3,
-                })
+                if (/^ *[^} ][^ ]*/.test(selectedLinesArr[0])) {
+                    editor.setPosition({
+                        lineNumber: selection.startLineNumber,
+                        column: selection.startColumn + 3,
+                    })
+                }
             }
             else {
-                editor.setSelection({
-                    startLineNumber: selection.startLineNumber,
-                    startColumn: selection.startColumn + 3,
-                    endLineNumber: selection.endLineNumber,
-                    endColumn: selection.endColumn + 3,
-                })
+                if (editor.getPosition().lineNumber === selection.startLineNumber) {
+                    // change selection direction (begin becomes end and vice-versa)
+                    editor.setSelection({
+                        startLineNumber: selection.endLineNumber,
+                        startColumn: selection.endColumn + (/^ *[^} ][^ ]*/.test(selectedLinesArr[selectedLinesArr.length - 1])? 3 : 0),
+                        endLineNumber: selection.startLineNumber,
+                        endColumn: selection.startColumn + (/^ *[^} ][^ ]*/.test(selectedLinesArr[0])? 3 : 0),
+                    })
+                }
+                else {
+                    editor.setSelection({
+                        startLineNumber: selection.startLineNumber,
+                        startColumn: selection.startColumn + (/^ *[^} ][^ ]*/.test(selectedLinesArr[0])? 3 : 0),
+                        endLineNumber: selection.endLineNumber,
+                        endColumn: selection.endColumn + (/^ *[^} ][^ ]*/.test(selectedLinesArr[selectedLinesArr.length - 1])? 3 : 0),
+                    })
+                }
             }
         }
         
-        else {
+        else /* remove comments */ {
             let newText = selectedLinesStr.replace(/^( *)-- (.*)$/gm, "$1$2")
             editor.executeEdits("removing line comment", [
                 {range: lineRange, text: newText}
             ])
             if (selection.isEmpty()) {
-                editor.setPosition({
-                    lineNumber: selection.startLineNumber,
-                    column: selection.startColumn - 3,
-                })
+                if (/^ *[^} ][^ ]*/.test(selectedLinesArr[0])) {
+                    editor.setPosition({
+                        lineNumber: selection.startLineNumber,
+                        column: selection.startColumn - 3,
+                    })
+                }
             }
             else {
-                editor.setSelection({
-                    startLineNumber: selection.startLineNumber,
-                    startColumn: selection.startColumn - 3,
-                    endLineNumber: selection.endLineNumber,
-                    endColumn: selection.endColumn - 3,
-                })
+                if (editor.getPosition().lineNumber === selection.startLineNumber) {
+                    // change selection direction (begin becomes end and vice-versa)
+                    editor.setSelection({
+                        startLineNumber: selection.endLineNumber,
+                        startColumn: selection.endColumn - (/^ *[^} ][^ ]*/.test(selectedLinesArr[selectedLinesArr.length - 1])? 3 : 0),
+                        endLineNumber: selection.startLineNumber,
+                        endColumn: selection.startColumn - (/^ *[^} ][^ ]*/.test(selectedLinesArr[0])? 3 : 0),
+                    })
+                }
+                else {
+                    editor.setSelection({
+                        startLineNumber: selection.startLineNumber,
+                        startColumn: selection.startColumn - (/^ *[^} ][^ ]*/.test(selectedLinesArr[0])? 3 : 0),
+                        endLineNumber: selection.endLineNumber,
+                        endColumn: selection.endColumn - (/^ *[^} ][^ ]*/.test(selectedLinesArr[selectedLinesArr.length - 1])? 3 : 0),
+                    })
+                }
             }
         }
     }
