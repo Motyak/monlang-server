@@ -425,8 +425,9 @@
                 .show()
         }
         else if (g_resObj["prog"] === "parser") {
-            $("#prog_out").text(g_resObj["out"]["traceback.txt"])
             $("#prog_status").hide()
+            $("#prog_out").text(g_resObj["out"]["traceback.txt"])
+                .scrollTop(0)
         }
         addLinksInConsole()
         addHintsInConsole()
