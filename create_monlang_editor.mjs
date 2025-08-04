@@ -38,6 +38,7 @@ export const create_monlang_editor = (domElement, value = "") => {
             {open: "{", close: "}"},
             {open: '"', close: '"'},
         ],
+        wordPattern: /[^()[\]{}"`:., \n]+/,
     })
 
     monaco.languages.setMonarchTokensProvider("monlang", {
