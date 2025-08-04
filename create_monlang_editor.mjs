@@ -38,7 +38,7 @@ export const create_monlang_editor = (domElement, value = "") => {
             {open: "{", close: "}"},
             {open: '"', close: '"'},
         ],
-        wordPattern: /[^()[\]{}"`:., \n]+/,
+        wordPattern: /[^()[\]{}"`:.,#& \n]+/, // for word completion
     })
 
     monaco.languages.setMonarchTokensProvider("monlang", {
@@ -123,7 +123,7 @@ export const create_monlang_editor = (domElement, value = "") => {
         theme: "monlang",
         occurrencesHighlight: "off",
         value: value,
-        wordSeparators: "()[]{}:\"`,.#",
+        wordSeparators: "()[]{}:\"`,.#&", // for word navigation
     })
 
     editor.getModel().pushEOL(monaco.editor.EndOfLineSequence.LF)

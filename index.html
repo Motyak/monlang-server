@@ -89,8 +89,8 @@
     let g_resObj
     let g_symbolTokenList = []
     let g_syntaxTreeHtml = {"LV1": "", "LV2": ""}
-    let g_to_token_id = {"LV1": [], "LV2": []}
-    let g_to_err_desc = {"LV1": {}, "LV2": {}}
+    let g_toTokenId = {"LV1": [], "LV2": []}
+    let g_toErrDesc = {"LV1": {}, "LV2": {}}
 
     /* enumerate node expansion methods */
     const SHOW_HIDDEN = Symbol() // don't fetch anything, show hidden items
@@ -187,7 +187,7 @@
         if (LVx == null) {
             LVx = g_resObj["out"]["LV1.tokens.json"]["traceback"][0] !== undefined? "LV1" : "LV2"
         }
-        return g_to_err_desc[LVx][err_fmt]
+        return g_toErrDesc[LVx][err_fmt]
     }
 
     const addLinksInConsole = () => {
@@ -234,7 +234,7 @@
     const get_token = tr => {
         let LVx = $(tr).closest("div").attr("name")
         let tr_index = Number($(tr).attr("name"))
-        let token_id = g_to_token_id[LVx][tr_index]
+        let token_id = g_toTokenId[LVx][tr_index]
         return g_resObj["out"][`${LVx}.tokens.json`]["list"][token_id]
     }
 
@@ -412,7 +412,7 @@
                 let index = curLine.indexOf(" ")
                 let curErrFmt = curLine.slice(0, index)
                 let curErrDesc = curLine.slice(index + 1)
-                g_to_err_desc[LVx][curErrFmt] = curErrDesc
+                g_toErrDesc[LVx][curErrFmt] = curErrDesc
             }
         }))
 
@@ -466,18 +466,18 @@
                     }
                 }
                 if (expectedTokenName === "") {
-                    g_to_token_id[LVx][i] = null // no token assigned
+                    g_toTokenId[LVx][i] = null // no token assigned
                     continue
                 }
                 if (expectedTokenName === "@peekNext") {
-                    g_to_token_id[LVx][i] = j // assign next token, whatever it is
+                    g_toTokenId[LVx][i] = j // assign next token, whatever it is
                                               // , don't increment j
                     continue
                 }
                 while (tokenList[j]["name"] !== expectedTokenName && j + 1 < tokenList.length) {
                     j += 1
                 }
-                g_to_token_id[LVx][i] = j
+                g_toTokenId[LVx][i] = j
                 // console.log(`i=${i} ; line=${LVx_lines[i]} ; j=${j} ; expected=${expectedTokenName}`) //debug
                 j += 1
             }
