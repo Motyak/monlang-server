@@ -114,6 +114,7 @@ export const create_monlang_editor = (domElement, value = "") => {
     })
 
     let editor = monaco.editor.create(domElement, {
+        acceptSuggestionOnEnter: "off",
         automaticLayout: true,
         fontFamily: "Menlo, Consolas, monospace",
         fontSize: 12,
