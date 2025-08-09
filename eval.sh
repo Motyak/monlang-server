@@ -45,6 +45,7 @@ mkdir -p "$home_dir"/{out,"$srcdir"}
 cat /dev/null > "${home_dir}/out/console.txt"
 cp "$tmppath" "${home_dir}/$srcpath"
 cd "$home_dir"
+ulimit -Sv 512000 # restrict virtual memory to 500MB
 &>/dev/null ../../monlang-parser/bin/main.elf "$srcpath" & parser_pid=$!
 # we need to use stdbuf otherwise we won't get output in case the program segfaults or gets timed out..
 &>out/console.txt timeout 5 stdbuf -oL ../../monlang-interpreter/bin/main.elf "$srcpath" & interpreter_pid=$!
