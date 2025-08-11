@@ -47,7 +47,8 @@ export const create_monlang_editor = (domElement, value = "") => {
             root: [
                 /* order matters here !! */
                 /* 1 */
-                [/^ *var( |\n)(?!([:+*%\/-]|\*\*|&&|\|\|)=)/, "keyword"],
+                [/^ *var( |\n)(?!([:+*%&^|\/-]|\*\*|\/\/|<<|>>|&&|\|\|)=)/, "keyword"],
+                [/^ *let( |\n)(?!([:+*%&^|\/-]|\*\*|\/\/|<<|>>|&&|\|\|)=)/, "keyword"],
                 [/^( *)-- .*{\n/, "comment", "@trailing_block_in_comment"],
                 [/^( *)-- .*```\n/, "comment", "@trailing_quotblock_in_comment"],
                 [/^( *)-- .*\n/, "comment"],
