@@ -505,7 +505,7 @@
                     }
                     symbolMap[symbolName].push(token)
                 }
-                isAVarSymbol = token["name"] === "VarStatement" // for the next iteration
+                isAVarSymbol = ["VarStatement", "LetStatement"].includes(token["name"]) // for the next iteration
             }
 
             symbolList = Object.entries(symbolMap)
