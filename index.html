@@ -776,7 +776,10 @@
                 g_peekEditor = checkbox.checked
             }
         }
-        $("#options_menu :checkbox").each((_index, element) => setOption(element)) // at startup
+        setTimeout(
+            () => $("#options_menu :checkbox").each((_index, element) => setOption(element)), // at startup
+            0
+        )
         $("#options_menu").change(":checkbox", event => setOption(event.target))
 
         $("#LV1_btn, #LV2_btn").click(event => {
