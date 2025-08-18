@@ -447,13 +447,22 @@
                 if (match) {
                     expectedTokenName = match[1]
                 }
+                else if (LVx_lines[i].match(/\bargument\b/)) {
+                    if (LVx_lines[i + 1].match(/\bkey\b/)) {
+                        g_toTokenId[LVx][i] = null // no token assigned
+                        continue
+                    }
+                    else {
+                        expectedTokenName = "@peekNext"
+                    }
+                }
                 else {
                     const map = [
                         [/\b(block|body)\b/, "BlockExpression"],
                         [/\b(parameter|variadic parameters|operator)\b/, "Symbol"],
                         [/\b(index)\b/, "SubscriptIndex"],
                         [/\b(range)\b/, "SubscriptRange"],
-                        [/\b(function|argument)\b/, "@peekNext"],
+                        [/\b(function|key|value)\b/, "@peekNext"],
                     ]
                     for (let z = 0; z < map.length; ++z) {
                         const pair = map[z]
