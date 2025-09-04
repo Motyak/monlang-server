@@ -1,11 +1,11 @@
 #!/bin/bash
-
 [ "${BASH_SOURCE[0]}" == "$0" ] || {
     >&2 echo "script must be executed, not sourced"
     return 1
 }
 
 set -o errexit
+# set -o xtrace #debug
 
 [ "$1" != "" ] && {
     FILENAME="$(basename "$1")"
@@ -34,6 +34,9 @@ cd "$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 wait
 url="http://127.0.0.1:55555${srcname+?srcname=}${srcname}${src+&src=}${src}"
 2>/dev/null xdg-open "$url" || {
-    [ "$WSL_DISTRO_NAME" != "" ] && export BROWSER="$(type -P explorer.exe)"
-    sensible-browser "$url" || true
+    if [ "$WSL_DISTRO_NAME" != "" ]; then
+        rundll32.exe url.dll,FileProtocolHandler "$url"
+    else
+        sensible-browser "$url" || true
+    fi    
 }
