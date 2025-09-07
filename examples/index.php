@@ -1,6 +1,6 @@
 <ul>
 <?php
-    $files = array_diff(scandir("."), array(".", "..", "index.php"));
+    $files = array_diff(scandir("."), array(".", "..", "index.php", "bookmarks"));
     foreach ($files as $file) {
         $file_basename = basename($file);
         $src = urlencode(file_get_contents($file));
