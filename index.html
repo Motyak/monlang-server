@@ -668,6 +668,9 @@
                 .text("Executing program...")
                 .css("border-top-color", "grey")
                 .show()
+            // in case of a long computation, we still want to see it's executing
+            // (we don't want to wait the program output)
+            $("#consolepanel").show()
         }
         // 20ms is the min delay above which you don't see an ugly blink..
         // ..when executing the simplest `print($true)` program
