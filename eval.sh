@@ -36,9 +36,8 @@ request_id="${3:-0}"
 
 srcdir="."; [[ "$srcpath" = */* ]] && srcdir="${srcpath%/*}"
 
-[[ "$request_id" =~ [0-9]+ ]] && {
-    rm -rf "home/${request_id}"; mkdir -p $_ # extra check for security
-}
+[[ "$request_id" =~ [0-9]+ ]] || { >&2 echo "Invalid request id"; exit 1; }
+rm -rf "home/${request_id}"; mkdir -p $_
 home_dir="$(realpath "$_")"
 
 mkdir -p "$home_dir"/{out,"$srcdir"}
