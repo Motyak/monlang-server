@@ -458,11 +458,12 @@
                 }
                 else {
                     const map = [
+                        [/^ *(?:~|-)> `/, "@skip"],
+                        [/\b(function|key|value)\b/, "@peekNext"],
                         [/\b(block|body)\b/, "BlockExpression"],
                         [/\b(parameter|variadic parameters|operator)\b/, "Symbol"],
                         [/\b(index)\b/, "SubscriptIndex"],
                         [/\b(range)\b/, "SubscriptRange"],
-                        [/\b(function|key|value)\b/, "@peekNext"],
                     ]
                     for (let z = 0; z < map.length; ++z) {
                         const pair = map[z]
@@ -474,13 +475,13 @@
                         }
                     }
                 }
-                if (expectedTokenName === "") {
+                if (expectedTokenName === "" || expectedTokenName === "@skip") {
                     g_toTokenId[LVx][i] = null // no token assigned
                     continue
                 }
                 if (expectedTokenName === "@peekNext") {
                     g_toTokenId[LVx][i] = j // assign next token, whatever it is
-                                              // , don't increment j
+                                            // , don't increment j
                     continue
                 }
                 while (tokenList[j]["name"] !== expectedTokenName && j + 1 < tokenList.length) {
