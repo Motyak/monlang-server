@@ -930,6 +930,21 @@
             }
         })
 
+        $("#prog_out").on("click", "button", event => {
+            let btn = event.currentTarget
+            if ($(btn).hasClass("no-underline")) {
+                return
+            }
+            $("#prog_out button.no-underline").each((_index, element) => {
+                $(element)
+                    .removeClass("text-blue-800 no-underline")
+                    .addClass("text-blue-600 underline")
+            })
+            $(btn)
+                .removeClass("text-blue-600 underline")
+                .addClass("text-blue-800 no-underline")
+        })
+
         editor.getModel().onDidChangeContent(_event => {
             let src = get_src()
             document.title = (g_lastExecutedSrc != null && src !== g_lastExecutedSrc? "*" : "") + SRCNAME
