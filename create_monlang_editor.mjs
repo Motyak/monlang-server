@@ -51,7 +51,7 @@ export const create_monlang_editor = (domElement, value = "") => {
                 [/^ *let( |\n)(?!([:+*%&^|\/-]|\*\*|\/\/|<<|>>|&&|\|\|)=)/, "keyword"],
                 [/^( *)-- .*{\n/, "comment", "@trailing_block_in_comment"],
                 [/^( *)-- .*```\n/, "comment", "@trailing_quotblock_in_comment"],
-                [/^( *)-- .*\n/, "comment"],
+                [/^( *)--( .*)?\n/, "comment"],
 
                 /* 2 */
                 [/"/, "string", "@string"],
