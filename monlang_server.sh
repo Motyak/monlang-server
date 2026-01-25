@@ -7,7 +7,7 @@
 
 set -o errexit
 
-cd "$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
+cd "$(dirname "$(readlink -f "$0")")"
 
 2>/dev/null tmux has-session -t monlang || {
     2>/dev/null nc -z 127.0.0.1 55555 && {
