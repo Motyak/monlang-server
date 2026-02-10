@@ -75,7 +75,7 @@
 
     editor = create_monlang_editor(
         /*domElement*/ $("#editorpanel")[0],
-        /*value*/ queryParams.get("src") ?? ""
+        /*value*/ queryParams.get("src") ?? "\n"
     )
 
     editor.focus() // autofocus

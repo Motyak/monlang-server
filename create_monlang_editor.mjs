@@ -105,6 +105,7 @@ export const create_monlang_editor = (domElement, value = "") => {
             {
                 token: "string",
                 fontStyle: "italic",
+                // foreground: "#002A5B"
             },
             {
                 token: "comment",
@@ -125,7 +126,7 @@ export const create_monlang_editor = (domElement, value = "") => {
         theme: "monlang",
         occurrencesHighlight: "off",
         value: value,
-        wordSeparators: "()[]{}:\"`,.#&", // for word navigation
+        wordSeparators: "()[]{}:\"`,.#&'", // for word navigation
     })
 
     editor.getModel().pushEOL(monaco.editor.EndOfLineSequence.LF)
