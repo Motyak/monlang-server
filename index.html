@@ -639,13 +639,13 @@
             $("#LVx_tree").attr("name", "LV2")
             $("#LV1_btn, #LV2_btn")
                 .prop("disabled", false) // .removeAttr("disabled")
-                .removeClass("cursor-not-allowed")
+                .removeClass("opacity-50 cursor-not-allowed")
             $("#LV1_btn")
-                .removeClass("font-bold bg-gray-100")
-                .addClass("opacity-50")
+                .removeClass("font-bold")
+                .addClass("bg-gray-100")
             $("#LV2_btn")
-                .removeClass("opacity-50")
-                .addClass("font-bold bg-gray-100")
+                .addClass("font-bold")
+                .removeClass("bg-gray-100")
         }
         else {
             /* LV1 is active, LV2 is inaccessible */
@@ -653,12 +653,12 @@
             $("#LVx_tree").attr("name", "LV1")
             $("#LV1_btn")
                 .prop("disabled", false)
-                .removeClass("opacity-50 cursor-not-allowed")
-                .addClass("font-bold bg-gray-100")
+                .addClass("font-bold")
+                .removeClass("opacity-50 cursor-not-allowed bg-gray-100")
             $("#LV2_btn")
                 .prop("disabled", true)
-                .removeClass("font-bold bg-gray-100")
-                .addClass("opacity-50 cursor-not-allowed")
+                .removeClass("font-bold")
+                .addClass("opacity-50 cursor-not-allowed bg-gray-100")
         }
     }
 
@@ -788,18 +788,18 @@
 
         $("#LV1_btn, #LV2_btn").click(event => {
             let btn = event.currentTarget
-            if ($(btn).hasClass("bg-gray-100")) {
+            if ($(btn).hasClass("font-bold")) {
                 return
             }
 
             let clickedLVx = $(btn).text()
             let otherLVx = clickedLVx === "LV1"? "LV2" : "LV1"
             $(`#${clickedLVx}_btn`)
-                .removeClass("opacity-50")
-                .addClass("font-bold bg-gray-100")
+                .addClass("font-bold")
+                .removeClass("bg-gray-100")
             $(`#${otherLVx}_btn`)
-                .removeClass("font-bold bg-gray-100")
-                .addClass("opacity-50")
+                .removeClass("font-bold")
+                .addClass("bg-gray-100")
             $("#LVx_tree").attr("name", clickedLVx)
             // save detached active table before loading other table
             g_syntaxTreeHtml[otherLVx] = $("#LVx_tree table tr").detach()
