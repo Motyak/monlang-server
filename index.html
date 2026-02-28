@@ -691,7 +691,12 @@
             success: res => {
                 g_srcExecutionInProgress = null
                 clearTimeout(timeout_clearConsole)
-                onSuccess(JSON.parse(res))
+                let resJson
+                try {resJson = JSON.parse(res)}
+                catch {console.error("Failed parsing JSON from `" + res + "`")}
+                if (resJson !== undefined) {
+                    onSuccess(resJson)
+                }
             },
             error: (xhr, textStatus, err) => {
                 clearTimeout(timeout_clearConsole)
