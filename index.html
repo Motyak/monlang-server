@@ -755,6 +755,13 @@
             }
         })
 
+        // don't send ctrl+v event to editor, let the browser natively handle it
+        $("#editorpanel")[0].addEventListener("keydown", event => {
+            if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "v") {
+                event.stopImmediatePropagation()
+            }
+        }, /*useCapture <> blubbling*/true)
+
         $("#globalpanel").mousemove(event => {
             if (!$("#tooltip").hasClass("invisible")) {
                 $("#tooltip").css({
