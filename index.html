@@ -718,7 +718,7 @@
         })
 
         $(document).keydown(event => {
-            if (event.ctrlKey && event.key === "s") {
+            if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s") {
                 event.preventDefault()
                 let src = get_src()
                 execute_src(src)
@@ -726,19 +726,19 @@
                 document.title = SRCNAME
             }
 
-            if (event.ctrlKey && event.key === "j") {
+            if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "j") {
                 event.preventDefault()
                 $("#consolepanel").toggle()
             }
 
-            if (event.ctrlKey && event.key === "b") {
+            if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "b") {
                 event.preventDefault()
                 $("#syntaxtreepanel, #symbolpanel").toggle()
             }
 
             // Firefox adds extra whitespaces to the document so..
             // ..we override ctrl+a behavior */
-            if (event.ctrlKey && event.key === "a") {
+            if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "a") {
                 event.preventDefault()
                 let range = document.createRange()
                 range.selectNode($("#prog_out")[0])
@@ -747,7 +747,7 @@
                 selection.addRange(range)
             }
 
-            if (event.ctrlKey && event.shiftKey && event.key === "/") {
+            if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === "/") {
                 event.preventDefault() // just in case
                 if (editor.hasTextFocus()) {
                     toggle_comment_selection()
