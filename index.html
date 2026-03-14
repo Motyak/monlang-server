@@ -284,6 +284,11 @@
                 + `</pre></td></tr>`
     }
 
+    // in a syntax tree row, add line-through if empty expression stmt (<=> commented line)
+    const rowLinethrough = (row) => {
+        return row.replace(/(.*-&gt; )(.*ExpressionStatement \(empty\))(.*)/, "$1<s>$2</s>$3")
+    }
+
     const toggleSyntaxTreeNode = (tr, shouldExpandAll = g_autoExpandTrees) => {
         const collapse = tr => {
             let tr_pre = $(tr).find("pre:first")
@@ -355,6 +360,7 @@
                     }
 
                     let newRow = htmlizeAsCollapsed(LVx_lines, i)
+                    newRow = rowLinethrough(newRow)
                     newRows.push(newRow)
                 }
 
@@ -373,6 +379,7 @@
                     }
 
                     let newRow = htmlizeAsExpanded(LVx_lines, i)
+                    newRow = rowLinethrough(newRow)
                     newRows.push(newRow)
                 }
 
@@ -598,6 +605,7 @@
                 let LVx_lines = g_resObj["out"][`${LVx}.ast.txt`].trimEnd().split("\n")
                 for (let i = 0; i < LVx_lines.length; ++i) {
                     let newRow = htmlizeAsExpanded(LVx_lines, i)
+                    newRow = rowLinethrough(newRow)
                     g_syntaxTreeHtml[LVx] += newRow
                 }
             })
@@ -612,6 +620,7 @@
                         malformed_parent = true // or first elem
                         malformed_parent_indent = get_indent(LVx_lines[i])
                         let newRow = htmlizeAsExpanded(LVx_lines, i)
+                        newRow = rowLinethrough(newRow)
                         g_syntaxTreeHtml[LVx] += newRow
                         continue
                     }
@@ -626,6 +635,7 @@
                         continue
                     }
                     let newRow = htmlizeAsCollapsed(LVx_lines, i)
+                    newRow = rowLinethrough(newRow)
                     g_syntaxTreeHtml[LVx] += newRow
                 }
             })
