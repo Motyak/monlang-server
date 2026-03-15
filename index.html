@@ -757,7 +757,7 @@
                 selection.addRange(range)
             }
 
-            if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === "/") {
+            if ((event.ctrlKey || event.metaKey) && event.key === "/") {
                 event.preventDefault() // just in case
                 if (editor.hasTextFocus()) {
                     toggle_comment_selection()
