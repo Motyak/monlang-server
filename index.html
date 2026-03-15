@@ -727,6 +727,54 @@
             }
         })
 
+        function showKey(text) {
+            // 1. Get or Create the global container for stacking
+            let container = document.getElementById('key-display-stack');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'key-display-stack';
+                Object.assign(container.style, {
+                position: 'fixed', bottom: '10%', left: '50%', transform: 'translateX(-50%)',
+                display: 'flex', flexDirection: 'column-reverse', alignItems: 'center',
+                gap: '8px', zIndex: '10000', pointerEvents: 'none'
+                });
+                document.body.appendChild(container);
+            }
+
+            // 2. Create the individual key pill
+            const pill = document.createElement('div');
+            pill.textContent = text;
+            Object.assign(pill.style, {
+                backgroundColor: 'rgba(20, 20, 20, 0.9)',
+                color: '#fff',
+                padding: '10px 20px',
+                borderRadius: '6px',
+                fontFamily: 'monospace',
+                fontSize: '22px',
+                fontWeight: 'bold',
+                boxShadow: '0 4px 15px rgba(0,0,0,0.5)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                opacity: '0',
+                transform: 'translateY(10px)',
+                transition: 'all 0.2s ease-out'
+            });
+
+            container.appendChild(pill);
+
+            // 3. Animate In
+            requestAnimationFrame(() => {
+                pill.style.opacity = '1';
+                pill.style.transform = 'translateY(0)';
+            });
+
+            // 4. Animate Out & Cleanup
+            setTimeout(() => {
+                pill.style.opacity = '0';
+                pill.style.transform = 'scale(0.95)';
+                pill.addEventListener('transitionend', () => pill.remove());
+            }, 1200); // Visible for 1.2 seconds
+        }
+
         $(document).keydown(event => {
             if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s") {
                 event.preventDefault()
@@ -734,16 +782,22 @@
                 execute_src(src)
                 g_lastExecutedSrc = src
                 document.title = SRCNAME
+
+                showKey("Ctrl + S")
             }
 
             if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "j") {
                 event.preventDefault()
                 $("#consolepanel").toggle()
+
+                showKey("Ctrl + J")
             }
 
             if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "b") {
                 event.preventDefault()
                 $("#syntaxtreepanel, #symbolpanel").toggle()
+
+                showKey("Ctrl + B")
             }
 
             // Firefox adds extra whitespaces to the document so..
@@ -762,6 +816,8 @@
                 if (editor.hasTextFocus()) {
                     toggle_comment_selection()
                 }
+
+                showKey("Ctrl + /")
             }
         })
 
