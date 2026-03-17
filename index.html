@@ -765,9 +765,12 @@
             }
         })
 
-        // don't send ctrl+v event to editor, let the browser natively handle it
+        // don't send ctrl+v / shift+inser event to editor, let the browser natively handle it
         $("#editorpanel")[0].addEventListener("keydown", event => {
             if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "v") {
+                event.stopImmediatePropagation()
+            }
+            else if (event.shiftKey && event.key === "Insert") {
                 event.stopImmediatePropagation()
             }
         }, /*useCapture <> blubbling*/true)
