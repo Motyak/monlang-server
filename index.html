@@ -62,7 +62,7 @@
     SRCNAME = SRCNAME.replace(/^\.(?=$|\.$)|(?<=^\.)\.$/g, "Dot") // sanitize filename
     /* normalize query parameters */
     {
-        let SRC = encodeURIComponent(queryParams.get("src") ?? "")
+        let SRC = encodeURIComponent(queryParams.get("src") ?? "\n")
         let newUrl = `${window.location.pathname}?srcname=${SRCNAME}&src=${SRC}`
         window.history.replaceState({path: newUrl}, "", newUrl)
     }
