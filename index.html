@@ -102,11 +102,6 @@
     let g_toTokenId = {"LV1": [], "LV2": []}
     let g_toErrDesc = {"LV1": {}, "LV2": {}}
 
-    /* enumerate node expansion methods */
-    const SHOW_HIDDEN = Symbol() // don't fetch anything, show hidden items
-    const GET_GRADUALLY = Symbol() // only fetch next level, if missing
-    const GET_ALL = Symbol() // (re-)fetch everything
-
     // line and col starts at 1
     const jump_to = (line, col, accessedWithMouse = true) => {
         editor.revealLineInCenter(line)
@@ -316,6 +311,11 @@
                 // we don't want to delete the rows, only hide them
                 .hide()
         }
+
+        /* enumerate node expansion methods */
+        const SHOW_HIDDEN = Symbol() // don't fetch anything, show hidden items
+        const GET_GRADUALLY = Symbol() // only fetch next level, if missing
+        const GET_ALL = Symbol() // (re-)fetch everything
 
         const expand = (tr, expansionMethod = SHOW_HIDDEN) => {
             let tr_pre = $(tr).find("pre:first")
