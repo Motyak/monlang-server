@@ -792,7 +792,7 @@
             else if (event.shiftKey && event.key === "Insert") {
                 event.stopImmediatePropagation()
             }
-        }, /*useCapture <> blubbling*/true)
+        }, /*useCapture <> bubbling*/true)
 
         $("#globalpanel").mousemove(event => {
             if (!$("#tooltip").hasClass("invisible")) {
