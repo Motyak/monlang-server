@@ -9,6 +9,16 @@
 <!-- prevent sending query parameters in requests referrer header -->
 <meta name="referrer" content="origin">
 
+<style>
+    /* keep the cursor visible even when the editor doesn't have focus */
+    /* (good for keyboard navigation on stacktrace, and more...) */
+    .monaco-editor:not(.focused) .cursors-layer .cursor {
+        visibility: visible !important;
+        display: block !important;
+        opacity: 0.5; 
+    }
+</style>
+
 <!--
 `min-w-0` => to prevent `flex-1 w-full` from expanding beyond its parent (viewport)
 `min-h-0` => to prevent `flex-1 h-full` from expanding beyond its parent (viewport)
@@ -98,10 +108,12 @@
     const GET_ALL = Symbol() // (re-)fetch everything
 
     // line and col starts at 1
-    const jump_to = (line, col) => {
+    const jump_to = (line, col, accessedWithMouse = true) => {
         editor.revealLineInCenter(line)
         editor.setPosition({lineNumber: line, column: col})
-        editor.focus()
+        if (accessedWithMouse /* <> keyboard navigation */) {
+            editor.focus()
+        }
     }
 
     const toggle_comment_selection = () => {
@@ -194,7 +206,9 @@
         const literalStrAsRegex = str => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
 
         const asLink = (line, col) => {
-            return `<button onclick="jump_to(${line}, ${col})" tabindex="0"`
+            // event.detail for a click event correspond to the nb of times the event.target was clicked..
+            // .., in case of keyboard activation (pressing ENTER) the click count remains 0
+            return `<button onclick="jump_to(${line}, ${col}, !!event.detail)" tabindex="0"`
                 + `class="select-text text-blue-600 cursor-pointer underline hover:text-blue-800 hover:no-underline"`
                 + `>${SRCNAME}:${line}:${col}</button>`
         }
