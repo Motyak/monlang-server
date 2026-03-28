@@ -33,8 +33,9 @@
                 <span>SYNTAX TREE</span>
                 <span id="options_btn" class="absolute right-0 mr-1 px-0.5 cursor-pointer rounded-full hover:bg-gray-100">🛠</span>
                 <div id="options_menu" class="invisible absolute z-10 right-0 bg-white border p-1 text-xs">
-                    <label class="block flex items-center mb-1">autoExpand<input type="checkbox" class="ml-2"></label>
-                    <label class="block flex items-center">peekEditor<input type="checkbox" checked class="ml-2"></label>
+                    <label class="block flex items-center">autoExpand<input type="checkbox" class="ml-2"></label>
+                    <label class="block flex items-center mt-1">peekEditor<input type="checkbox" checked class="ml-2"></label>
+                    <label class="block flex items-center mt-1">focusOnLV1<input type="checkbox" class="ml-2"></label>
                 </div>
             </h1>
             <div class="flex flex-row border border-gray-200">
@@ -95,6 +96,7 @@
     let g_lastExecutedSrc = null
     let g_autoExpandTrees = false
     let g_peekEditor = true
+    let g_focusOnLV1 = false
     let g_srcExecutionInProgress = null
     let g_resObj
     let g_symbolTokenList = []
@@ -664,17 +666,13 @@
         hide_tooltip()
         if (g_resObj["prog"] === "interpreter" || g_resObj["out"]["LV2.tokens.json"]["traceback"].length > 0) {
             /* LV2 is active, both are accessible*/
-            $("#LVx_tree table").html(g_syntaxTreeHtml["LV2"])
-            $("#LVx_tree").attr("name", "LV2")
+            $("#LVx_tree table").html(g_syntaxTreeHtml[g_focusOnLV1? "LV1" : "LV2"])
+            $("#LVx_tree").attr("name", g_focusOnLV1? "LV1" : "LV2")
             $("#LV1_btn, #LV2_btn")
                 .prop("disabled", false) // .removeAttr("disabled")
                 .removeClass("opacity-50 cursor-not-allowed")
-            $("#LV1_btn")
-                .removeClass("font-bold")
-                .addClass("bg-gray-100")
-            $("#LV2_btn")
-                .addClass("font-bold")
-                .removeClass("bg-gray-100")
+            $(`#${g_focusOnLV1? "LV1" : "LV2"}_btn`).addClass("font-bold").removeClass("bg-gray-100")
+            $(`#${g_focusOnLV1? "LV2" : "LV1"}_btn`).removeClass("font-bold").addClass("bg-gray-100")
         }
         else {
             /* LV1 is active, LV2 is inaccessible */
@@ -822,6 +820,9 @@
             }
             else if (option === "peekEditor") {
                 g_peekEditor = checkbox.checked
+            }
+            else if (option == "focusOnLV1") {
+                g_focusOnLV1 = checkbox.checked
             }
         }
         setTimeout(
