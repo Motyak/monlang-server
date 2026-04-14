@@ -455,7 +455,7 @@
         // only add console links and hints in case of LVx error or runtime error or die()
         if (["LV1", "LV2"].some(LVx => g_resObj["out"][`${LVx}.tokens.json`]["traceback"].length > 0)
                 || g_resObj["prog"] === "interpreter" && g_resObj["prog_exitcode"] === 101 // runtime error
-                || g_resObj["prog_exitcode"] === 1 && g_resObj["out"]["console.txt"].startsWith("die()")) {
+                || g_resObj["prog_exitcode"] === 1 && /^die\(\)/m.test(g_resObj["out"]["console.txt"])) {
             addLinksInConsole()
             addHintsInConsole()
         }
