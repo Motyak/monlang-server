@@ -25,11 +25,6 @@ export const create_monlang_editor = (domElement, value = "") => {
         folding: {
             offSide: true,
         },
-        // required for `Alt + up/down arrow` to work
-        indentationRules: {
-            increaseIndentPattern: /([\[{]|[^`]```[^`])$/,
-            decreaseIndentPattern: /^\s*([}\]]|[^`]```[^`])/
-        },
         onEnterRules: [
             {
                 action: {indentAction: 2},
@@ -123,7 +118,6 @@ export const create_monlang_editor = (domElement, value = "") => {
 
     let editor = monaco.editor.create(domElement, {
         acceptSuggestionOnEnter: "off",
-        autoIndent: "full", // required for `Alt + up/down arrow` to work
         automaticLayout: true,
         fontFamily: "Menlo, Consolas, monospace",
         fontSize: 12,
