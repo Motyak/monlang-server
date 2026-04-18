@@ -51,6 +51,7 @@ export const create_monlang_editor = (domElement, value = "") => {
                 [/^ *let( |\n)(?!([:+*%&^|\/-]|\*\*|\/\/|<<|>>|&&|\|\|)=)/, "keyword"],
                 [/^ *type( |\n)(?!([:+*%&^|\/-]|\*\*|\/\/|<<|>>|&&|\|\|)=)/, "keyword"],
                 [/^( *)-- .*{\n/, "comment", "@trailing_block_in_comment"],
+                [/^( *)-- .*\[\n/, "comment", "@trailing_squareblock_in_comment"],
                 [/^( *)-- .*```\n/, "comment", "@trailing_quotblock_in_comment"],
                 [/^( *)--( .*)?\n/, "comment"],
 
@@ -84,6 +85,12 @@ export const create_monlang_editor = (domElement, value = "") => {
                 /* order matters here !! */
                 [/^.*{\n/, "comment", "@trailing_block_in_comment"],
                 [/^ *(-- )?}.*\n/, "comment", "@pop"],
+                [/^.*\n/, "comment"],
+            ],
+            trailing_squareblock_in_comment: [
+                /* order matters here !! */
+                [/^.*\[\n/, "comment", "@trailing_squareblock_in_comment"],
+                [/^ *(-- )?].*\n/, "comment", "@pop"],
                 [/^.*\n/, "comment"],
             ],
             trailing_quotblock_in_comment: [

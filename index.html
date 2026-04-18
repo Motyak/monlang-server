@@ -115,7 +115,7 @@
 
     const toggle_comment_selection = () => {
         // "ineffective lines" refer to lines that won't get modified in any case (add/remove)
-        const matchesEffectiveLine = (line) => /^ *[^} ][^ ]*/.test(line)
+        const matchesEffectiveLine = (line) => /^ *[^}\] ][^ ]*/.test(line)
 
         let selection = editor.getSelection()
         let lineRange = {
@@ -132,7 +132,7 @@
         let newText
         let newCursorOffset
         if (addComments) {
-            newText = selectedLinesStr.replace(/^( *)([^} \n][^ \n]*)/gm, "$1-- $2")
+            newText = selectedLinesStr.replace(/^( *)([^}\] \n][^ \n]*)/gm, "$1-- $2")
             newCursorOffset = 3
         }
         else {
