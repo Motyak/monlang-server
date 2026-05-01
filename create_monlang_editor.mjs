@@ -50,6 +50,7 @@ export const create_monlang_editor = (domElement, value = "") => {
                 [/^ *var( |\n)(?!([:+*%&^|\/-]|\*\*|\/\/|<<|>>|&&|\|\|)=)/, "keyword"],
                 [/^ *let( |\n)(?!([:+*%&^|\/-]|\*\*|\/\/|<<|>>|&&|\|\|)=)/, "keyword"],
                 [/^ *type( |\n)(?!([:+*%&^|\/-]|\*\*|\/\/|<<|>>|&&|\|\|)=)/, "keyword"],
+                [/^ *struct( |\n)(?!([:+*%&^|\/-]|\*\*|\/\/|<<|>>|&&|\|\|)=)/, "keyword"],
                 [/^( *)-- .*{\n/, "comment", "@trailing_block_in_comment"],
                 [/^( *)-- .*\[\n/, "comment", "@trailing_squareblock_in_comment"],
                 [/^( *)-- .*```\n/, "comment", "@trailing_quotblock_in_comment"],
