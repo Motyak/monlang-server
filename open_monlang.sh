@@ -5,6 +5,10 @@
     return 1
 }
 
+command -v php >/dev/null || { >&2 echo "php isn't installed"; exit 1; }
+command -v tmux >/dev/null || { >&2 echo "tmux isn't installed"; exit 1; }
+command -v nc >/dev/null || { >&2 echo "nc isn't installed"; exit 1; }
+
 set -o errexit
 # set -o xtrace #debug
 
