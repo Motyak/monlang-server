@@ -487,12 +487,13 @@
                 else {
                     const map = [
                         [/^ *(?:~|-)> `/, "@skip"],
-                        [/\b(function|key|value)\b/, "@peekNext"],
+                        [/\b(function|key|value|enumerate)\b/, "@peekNext"],
                         [/\b(block|body)\b/, "BlockExpression"],
-                        [/\b(parameter|variadic parameters|operator|type|subtype|name)\b/, "Symbol"],
+                        [/\b(parameter|variadic parameters|operator|type|subtype|name|enumerator)\b/, "Symbol"],
                         [/\b(index)\b/, "SubscriptIndex"],
                         [/\b(range)\b/, "SubscriptRange"],
                         [/\b(field)\b/, "FieldDefinition"],
+                        [/\b(enum value)\b/, "EnumValueDefinition"],
                     ]
                     for (let z = 0; z < map.length; ++z) {
                         const pair = map[z]
