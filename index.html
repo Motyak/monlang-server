@@ -297,7 +297,9 @@
 
     // in a syntax tree row, add line-through if empty expression stmt (<=> commented line)
     const rowLinethrough = (row) => {
-        return row.replace(/(.*-&gt; )(.*ExpressionStatement \(empty\))(.*)/, "$1<s>$2</s>$3")
+        return row
+            .replace(/(.*-&gt; )(.*ExpressionStatement \(empty\))(.*)/, "$1<s>$2</s>$3")
+            .replace(/(.*-&gt; )(.*Expression .*\(empty argument\))(.*)/, "$1<s>$2</s>$3")
     }
 
     const toggleSyntaxTreeNode = (tr, shouldExpandAll = g_autoExpandTrees) => {
@@ -481,7 +483,7 @@
                         continue
                     }
                     else {
-                        expectedTokenName = "@peekNext"
+                        expectedTokenName = "FunctionCallArgument"
                     }
                 }
                 else {
