@@ -301,6 +301,8 @@
             .replace(/(.*-&gt; )(.*ExpressionStatement \(empty\))(.*)/, "$1<s>$2</s>$3")
             .replace(/(.*-&gt; )(.*Expression .*\(empty argument\))(.*)/, "$1<s>$2</s>$3")
             .replace(/(.*-&gt; )(.*argument .*\(empty\))(.*)/, "$1<s>$2</s>$3")
+            .replace(/(.*-&gt; )(.*enum value .*\(empty\))(.*)/, "$1<s>$2</s>$3")
+            .replace(/(.*-&gt; )(.*field .*\(empty\))(.*)/, "$1<s>$2</s>$3")
     }
 
     const toggleSyntaxTreeNode = (tr, shouldExpandAll = g_autoExpandTrees) => {
@@ -492,13 +494,13 @@
                 else {
                     const map = [
                         [/^ *(?:~|-)> `/, "@skip"],
-                        [/\b(function|key|value|enumerate)\b/, "@peekNext"],
                         [/\b(block|body)\b/, "BlockExpression"],
                         [/\b(parameter|variadic parameters|operator|type|subtype|name|enumerator)\b/, "Symbol"],
                         [/\b(index)\b/, "SubscriptIndex"],
                         [/\b(range)\b/, "SubscriptRange"],
                         [/\b(field)\b/, "FieldDefinition"],
-                        [/\b(enum value)\b/, "EnumValueDefinition"],
+                        [/\b(enum value)\b/, "EnumValueDefinition"], // order matters
+                        [/\b(function|key|value|enumerate)\b/, "@peekNext"],
                     ]
                     for (let z = 0; z < map.length; ++z) {
                         const pair = map[z]
