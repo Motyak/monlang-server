@@ -430,10 +430,10 @@
     const get_res = () => g_resObj
     const set_res = res => {
         g_resObj = res
-        console.log(g_resObj) ;//
+        console.log(g_resObj)
 
         /* construct `errFmt to errDesc` map */
-        ["LV1", "LV2"].forEach(LVx => fetchFile(`${LVx}.ERR.txt`, LVx_ERR_txt => {
+        ; ["LV1", "LV2"].forEach(LVx => fetchFile(`${LVx}.ERR.txt`, LVx_ERR_txt => {
             let LVx_ERR_txt_lines = LVx_ERR_txt.split("\n")
             for (let i = 0; i < LVx_ERR_txt_lines.length; ++i) {
                 let curLine = LVx_ERR_txt_lines[i]
@@ -464,10 +464,10 @@
             addLinksInConsole()
             addHintsInConsole()
         }
-        $("#consolepanel").show() ;//
+        $("#consolepanel").show()
 
         /* construct `tr index to token id` map */
-        ["LV1", "LV2"].forEach(LVx => {
+        ; ["LV1", "LV2"].forEach(LVx => {
             let LVx_ast_txt = g_resObj["out"][`${LVx}.ast.txt`]
             let LVx_lines = LVx_ast_txt.trimEnd().split("\n")
             let tokenList = g_resObj["out"][`${LVx}.tokens.json`]["list"]
@@ -480,11 +480,11 @@
                 if (match) {
                     expectedTokenName = match[1]
                 }
-                else if (LVx_lines[i].match(/\bargument .*\(empty\)/)) {
+                else if (LVx_lines[i].match(/^ *(~|-)> argument .*\(empty\)$/)) {
                     expectedTokenName = "MapLiteralArgument"
                 }
-                else if (LVx_lines[i].match(/\bargument\b/)) {
-                    if (LVx_lines[i + 1].match(/\bkey\b/)) {
+                else if (LVx_lines[i].match(/^ *(~|-)> argument\b/)) {
+                    if (LVx_lines[i + 1].match(/^ *(~|-)> key$/)) {
                         expectedTokenName = "MapLiteralArgument"
                     }
                     else {
@@ -493,7 +493,7 @@
                 }
                 else {
                     const map = [
-                        [/^ *(?:~|-)> `/, "@skip"],
+                        [/^ *(~|-)> `/, "@skip"],
                         [/\b(block|body)\b/, "BlockExpression"],
                         [/\b(parameter|variadic parameters|operator|type|subtype|name|enumerator)\b/, "Symbol"],
                         [/\b(index)\b/, "SubscriptIndex"],
