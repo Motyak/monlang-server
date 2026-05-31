@@ -483,6 +483,9 @@
                 else if (LVx_lines[i].match(/^ *(~|-)> argument .*\(empty\)$/)) {
                     expectedTokenName = "MapLiteralArgument"
                 }
+                else if (LVx_lines[i].match(/^ *(~|-)> arguments \(none\)$/)) {
+                    expectedTokenName = "FunctionCallNoArgument"
+                }
                 else if (LVx_lines[i].match(/^ *(~|-)> argument\b/)) {
                     if (LVx_lines[i + 1].match(/^ *(~|-)> key$/)) {
                         expectedTokenName = "MapLiteralArgument"
@@ -493,7 +496,8 @@
                 }
                 else {
                     const map = [
-                        [/^ *(~|-)> `/, "@skip"],
+                        [/^ *(~|-)> `/, "@repeatPrevious"],
+
                         [/\b(block|body)\b/, "BlockExpression"],
                         [/\b(parameter|variadic parameters|operator|type|subtype|name|enumerator)\b/, "Symbol"],
                         [/\b(index)\b/, "SubscriptIndex"],
@@ -501,6 +505,9 @@
                         [/\b(field)\b/, "FieldDefinition"],
                         [/\b(enum value)\b/, "EnumValueDefinition"], // order matters
                         [/\b(function|key|value|enumerate)\b/, "@peekNext"],
+
+                        [/arguments \(none\)$/, "FunctionCallNoArgument"],
+                        [/\(no parameters\)$/, "LambdaNoParameter"],
                     ]
                     for (let z = 0; z < map.length; ++z) {
                         const pair = map[z]
@@ -512,13 +519,17 @@
                         }
                     }
                 }
-                if (expectedTokenName === "" || expectedTokenName === "@skip") {
+                if (expectedTokenName === "") {
                     g_toTokenId[LVx][i] = null // no token assigned
                     continue
                 }
                 if (expectedTokenName === "@peekNext") {
                     g_toTokenId[LVx][i] = j // assign next token, whatever it is
                                             // , don't increment j
+                    continue
+                }
+                if (expectedTokenName === "@repeatPrevious") {
+                    g_toTokenId[LVx][i] = j - 1 // re-assign previous token, don't increment j
                     continue
                 }
                 while (tokenList[j]["name"] !== expectedTokenName && j + 1 < tokenList.length) {
