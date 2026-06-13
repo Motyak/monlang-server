@@ -28,6 +28,8 @@
 
 <div id="globalpanel" class="flex flew-row w-screen h-screen font-mono text-base">
     <div id="sidepanel" class="2xl:block hidden flex-none w-1/5 h-full border-r-2 border-gray-300 select-none">
+        <p class="text-8xl text-gray-200" style="writing-mode: vertical-rl;">PERF MODE</span>
+        <!--
         <div id="syntaxtreepanel" class="flex flex-col flex-1 w-full h-1/2">
             <h1 class="relative font-bold text-center border-t border-gray-400">
                 <span>SYNTAX TREE</span>
@@ -55,6 +57,7 @@
                 </table>
             </div>
         </div>
+        -->
     </div>
     <div id="mainpanel" class="flex flex-col flex-1 w-full h-full min-w-0">
         <div id="editorpanel" class="flex-1 w-full h-full min-h-0 select-none"></div>
@@ -1010,12 +1013,18 @@
                 .addClass("text-blue-800 no-underline")
         })
 
-        editor.getModel().onDidChangeContent(_event => {
-            let src = get_src()
-            document.title = (g_lastExecutedSrc != null && src !== g_lastExecutedSrc? "*" : "") + SRCNAME
+        {
+            let debounceTimer
+            editor.getModel().onDidChangeContent(_event => {
+                let src = get_src()
+                document.title = (g_lastExecutedSrc != null && src !== g_lastExecutedSrc? "*" : "") + SRCNAME
 
-            let newUrl = `${window.location.pathname}?srcname=${SRCNAME}&src=${encodeURIComponent(src)}`;
-            window.history.replaceState({path: newUrl}, "", newUrl)
-        })
+                clearTimeout(debounceTimer)
+                debounceTimer = setTimeout(() => {
+                    let newUrl = `${window.location.pathname}?srcname=${SRCNAME}&src=${encodeURIComponent(src)}`;
+                    window.history.replaceState({path: newUrl}, "", newUrl)
+                }, 400)
+            })
+        }
     })
 </script>
