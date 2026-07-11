@@ -877,15 +877,18 @@
             $("#LVx_tree table")
                 .on("click", "tr", event => {
                     editor.focus() // to keep the selection blue
+                    let tr = event.currentTarget
                     if (event.ctrlKey) {
                         saveViewState = null
                         return
                     }
                     if (event.shiftKey) {
-                        toggleSyntaxTreeNode(event.currentTarget, /*shouldExpandAll*/true)
+                        // force expansion even if already expanded
+                        {let tr_pre = $(tr).find("pre:first"); tr_pre.text(tr_pre.text().replace("▾", "▸"))}
+                        toggleSyntaxTreeNode(tr, /*shouldExpandAll*/true)
                         return
                     }
-                    toggleSyntaxTreeNode(event.currentTarget)
+                    toggleSyntaxTreeNode(tr)
                 })
                 .on("mouseenter", "tr", event => {
                     editor.focus()
