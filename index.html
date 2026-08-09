@@ -765,7 +765,10 @@
         })
 
         $(document).keydown(event => {
-            if ((event.ctrlKey || event.metaKey) && event.key === "s") {
+            if (event.originalEvent.getModifierState("CapsLock")) {
+                event.key = event.key.toLowerCase()
+            }
+            if ((event.ctrlKey || event.metaKey) && !event.shiftKey && event.key === "s") {
                 event.preventDefault()
                 let src = get_src()
                 execute_src(src)
@@ -773,19 +776,19 @@
                 document.title = SRCNAME
             }
 
-            if ((event.ctrlKey || event.metaKey) && event.key === "j") {
+            if ((event.ctrlKey || event.metaKey) && !event.shiftKey && event.key === "j") {
                 event.preventDefault()
                 $("#consolepanel").toggle()
             }
 
-            if ((event.ctrlKey || event.metaKey) && event.key === "b") {
+            if ((event.ctrlKey || event.metaKey) && !event.shiftKey && event.key === "b") {
                 event.preventDefault()
                 $("#syntaxtreepanel, #symbolpanel").toggle()
             }
 
             // Firefox adds extra whitespaces to the document so..
             // ..we override ctrl+a behavior */
-            if ((event.ctrlKey || event.metaKey) === "a") {
+            if ((event.ctrlKey || event.metaKey) && !event.shiftKey && event.key === "a") {
                 event.preventDefault()
                 let range = document.createRange()
                 range.selectNode($("#prog_out")[0])
