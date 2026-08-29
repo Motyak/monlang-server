@@ -58,6 +58,7 @@ export const create_monlang_editor = (domElement, value = "") => {
                 [/^( *)--( .*)?\n/, "comment"],
 
                 /* 2 */
+                [/"\(\(/, "string", "@superString"],
                 [/"/, "string", "@string"],
                 [/```/, "string", "@multilineString"],
 
@@ -70,9 +71,17 @@ export const create_monlang_editor = (domElement, value = "") => {
                 [/\\./, "string.escape"],
                 [/"/, "string", "@pop"], // don't pop on newline, to detect non-ending quotes more easily
             ],
-            multilineString: [
-                [/[^\\`]+/, "string"],
+            superString: [
+                [/"\(\(/, "string", "@push"], // enable nesting
+                [/[^\\)"]+/, "string"],
+                [/\)(?!\)")/, "string"], // safe parentheses
+                [/\"(?!\(\()/, "string"], // safe quotes
+
                 [/\\./, "string.escape"],
+                [/\)\)"/, "string", "@pop"],
+            ],
+            multilineString: [
+                [/[^`]+/, "string"],
                 [/```/, "string", "@pop"],
             ],
             delimiter: [
