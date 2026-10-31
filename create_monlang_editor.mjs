@@ -1,8 +1,10 @@
 
-import createWorker from "https://esm.sh/monaco-editor@0.57.0/esm/vs/editor/editor.worker?worker"
+// import createWorker from "https://esm.sh/monaco-editor@0.57.0/esm/vs/editor/editor.worker?worker"
+import createWorker from "/lib/monaco-editor@0.57.0/editor.worker.js"
 window.MonacoEnvironment = {getWorker: (_moduleId, _label) => createWorker()};
 
-import * as monaco from "https://esm.sh/monaco-editor@0.57.0?bundle"
+// import * as monaco from "https://esm.sh/monaco-editor@0.57.0?bundle"
+import * as monaco from "/lib/monaco-editor@0.57.0.js"
 
 export const create_monlang_editor = (domElement, value = "") => {
 
